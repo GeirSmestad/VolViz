@@ -16,5 +16,10 @@ namespace VolViz
         {
             InitializeComponent();
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            var v = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
+        }
     }
 }

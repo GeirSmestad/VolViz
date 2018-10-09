@@ -1,3 +1,6 @@
 bin
 obj
 .vs
+VolViz.VC.db
+VolViz.VC.VC.opendb
+*.tmp
