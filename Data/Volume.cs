@@ -16,7 +16,9 @@ namespace VolViz.Data
         public int SliceSize;
         public int NumberOfVoxels;
 
-        public double[,,] Contents;
+        public int SizeOfLargestDimension;
+
+        public float[,,] Contents;
 
         /// <summary>
         /// Initialize an empty volume
@@ -29,8 +31,30 @@ namespace VolViz.Data
 
             //this.SliceSize = xSize * ySize;
             this.NumberOfVoxels = SliceSize * zSize;
+            this.SizeOfLargestDimension = Math.Max(Math.Max(XSize, YSize), ZSize);
 
-            this.Contents = new double[xSize, ySize, zSize];
+            this.Contents = new float[xSize, ySize, zSize];
+        }
+
+        public float GetVoxelClosest(float x, float y, float z)
+        {
+            int xVal = (int)Math.Floor(x + 0.5);
+            int yVal = (int)Math.Floor(y + 0.5);
+            int zVal = (int)Math.Floor(z + 0.5);
+
+            // Anything outside the volume has zero intensity
+            if (xVal < 0 || yVal < 0 || zVal < 0 ||
+                xVal >= XSize || yVal >= YSize || zVal >= ZSize)
+            {
+                return 0;
+            }
+
+            return Contents[xVal, yVal, zVal];
+        }
+
+        public float GetVoxelTrilinear(int x, int y, int z)
+        {
+            throw new NotImplementedException();
         }
 
         public static Volume LoadFromDatFile(string filename)
@@ -60,7 +84,7 @@ namespace VolViz.Data
                                 int thisVoxel = reader.ReadInt16();
 
                                 // Add voxel data to array, scaling to [0,1].
-                                result.Contents[x, y, z] = thisVoxel / 4095.0; 
+                                result.Contents[x, y, z] = thisVoxel / 4095.0f; 
                             }
                         }
                     }
