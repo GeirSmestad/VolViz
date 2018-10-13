@@ -11,7 +11,8 @@ namespace VolViz.Logic
 {
     public class VolumeRenderer
     {
-        public Volume volume;
+        public Volume Volume;
+        public ViewPlane ViewPlane;
 
         private int xSize = 128;
         private int ySize = 128;
@@ -20,7 +21,8 @@ namespace VolViz.Logic
 
         public VolumeRenderer(Volume volume)
         {
-            this.volume = volume;
+            ViewPlane = new ViewPlane();
+            this.Volume = volume;
         }
 
         public Bitmap Render()
@@ -53,12 +55,10 @@ namespace VolViz.Logic
         private Color CastRayFirstHit(float viewportX, float viewportY)
         {
             Vector4 result = new Vector4(0,0,0,0);
-
-            var viewPlane = new ViewPlane();
-
-            var rayPosition = viewPlane.BottomLeft + // Is this right? Is the viewport always 1x1? I think not.
-                viewPlane.RightDirection * viewportX +
-                viewPlane.UpDirection * viewportY;
+            
+            var rayPosition = ViewPlane.BottomLeft +
+                ViewPlane.RightDirection * viewportX +
+                ViewPlane.UpDirection * viewportY;
             
             float rayLength = 0;
             float cutoffDistance = 1.2f;
@@ -67,10 +67,10 @@ namespace VolViz.Logic
             while (rayLength < cutoffDistance)
             {
                 // TODO: Inefficient to translate to model space on every step. This can be handled better.
-                float voxelValue = volume.GetVoxelClosest(
-                    rayPosition.X * volume.SizeOfLargestDimension, 
-                    rayPosition.Y * volume.SizeOfLargestDimension, 
-                    rayPosition.Z * volume.SizeOfLargestDimension);
+                float voxelValue = Volume.GetVoxelClosest(
+                    rayPosition.X * Volume.SizeOfLargestDimension, 
+                    rayPosition.Y * Volume.SizeOfLargestDimension, 
+                    rayPosition.Z * Volume.SizeOfLargestDimension);
 
                 if (voxelValue > threshold)
                 {
@@ -80,7 +80,7 @@ namespace VolViz.Logic
                         (int)(voxelValue*255));
                 }
 
-                rayPosition += viewPlane.ProjectionDirection * stepSize;
+                rayPosition += ViewPlane.ProjectionDirection * stepSize;
                 rayLength += stepSize;
             }
 

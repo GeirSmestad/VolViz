@@ -25,13 +25,27 @@ namespace VolViz.Data
         public Vector3 BottomRight;
         public Vector3 BottomLeft;
 
-        // TODO: These matrixes must be initialized to their correct values.
-        public Matrix4x4 TranslationMatrix;
-        public Matrix4x4 RotationMatrix;
-        public Matrix4x4 ScalingMatrix;
+        private Vector3 InitialUpperLeft = new Vector3(-0.2f, 1.2f, -0.3f);
+        private Vector3 InitialUpperRight = new Vector3(1.2f, 1.2f, -0.3f);
+        private Vector3 InitialBottomRight = new Vector3(1.2f, -1.2f, -0.3f);
+        private Vector3 InitialBottomLeft = new Vector3(-0.2f, -0.2f, -0.3f);
 
+        private Vector3 InitialProjectionDirection = new Vector3(0, 0, 1);
+        private Vector3 InitialUpDirection = new Vector3(0, 1, 0);
+        private Vector3 InitialRightDirection = new Vector3(1, 0, 0);
 
-        //public ViewPlane(float volumeHeight, float volumeDepth, float scalingFactor)
+        public static Matrix4x4 UnityMatrix = new Matrix4x4(
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1);
+
+        public Matrix4x4 TranslationMatrix = UnityMatrix;
+        public Matrix4x4 RotationMatrix = UnityMatrix;
+        public Matrix4x4 ScalingMatrix = UnityMatrix;
+        
+        private Vector3 currentTranslation;
+
         public ViewPlane()
         {
             // Define a fixed view plane that faces the volume
@@ -39,10 +53,36 @@ namespace VolViz.Data
             UpDirection = new Vector3(0, 1, 0);
             RightDirection = new Vector3(1, 0, 0);
 
-            UpperLeft = new Vector3(-0.2f, 1.2f, -0.3f);
-            UpperRight = new Vector3(1.2f, 1.2f, -0.3f);
-            BottomRight = new Vector3(1.2f, -1.2f, -0.3f);
-            BottomLeft = new Vector3(-0.2f, -0.2f, -0.3f);
+            UpperLeft = InitialUpperLeft;
+            UpperRight = InitialUpperRight;
+            BottomRight = InitialBottomRight;
+            BottomLeft = InitialBottomLeft;
+
+            currentTranslation = Vector3.Zero;
+        }
+
+        public void Move(Vector3 translation)
+        {
+            currentTranslation += translation;
+
+            // TODO: Might use Matrix4x4.CreateTranslation instead :) I wanted to try this from scratch.
+            TranslationMatrix = new Matrix4x4(
+                1, 0, 0, currentTranslation.X,
+                0, 1, 0, currentTranslation.Y,
+                0, 0, 1, currentTranslation.Z,
+                0, 0, 0, 1);
+
+            TranslationMatrix = Matrix4x4.CreateTranslation(currentTranslation);
+
+            RecalculateVectors();
+        }
+
+        private void RecalculateVectors()
+        {
+            UpperLeft = Vector3.Transform(InitialUpperLeft, TranslationMatrix);
+            UpperRight = Vector3.Transform(InitialUpperRight, TranslationMatrix);
+            BottomRight = Vector3.Transform(InitialBottomRight, TranslationMatrix);
+            BottomLeft = Vector3.Transform(InitialBottomLeft, TranslationMatrix);
         }
     }
 }

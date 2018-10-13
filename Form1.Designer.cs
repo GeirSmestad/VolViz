@@ -53,6 +53,10 @@
             this.canvas.Size = new System.Drawing.Size(512, 512);
             this.canvas.TabIndex = 1;
             this.canvas.TabStop = false;
+            this.canvas.MouseDown += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseDown);
+            this.canvas.MouseLeave += new System.EventHandler(this.canvas_MouseLeave);
+            this.canvas.MouseMove += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseMove);
+            this.canvas.MouseUp += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseUp);
             // 
             // trackBar1
             // 

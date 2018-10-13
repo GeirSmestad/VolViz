@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -16,12 +17,16 @@ namespace VolViz
 {
     public partial class Form1 : Form
     {
+        bool lmbDown = false;
+        Vector2 mousePositionAtLastTick = new Vector2(0,0);
+
         public Form1()
         {
             InitializeComponent();
         }
 
         private Volume volume = null;
+        private VolumeRenderer renderer = null;
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -61,8 +66,50 @@ namespace VolViz
         {
             volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
 
-            VolumeRenderer renderer = new VolumeRenderer(volume);
+            renderer = new VolumeRenderer(volume);
 
+            redrawVolumeRender();
+        }
+        
+        private void canvas_MouseDown(object sender, MouseEventArgs e)
+        {
+            lmbDown = true;
+        }
+
+        private void canvas_MouseUp(object sender, MouseEventArgs e)
+        {
+            lmbDown = false;
+        }
+
+        private void canvas_MouseLeave(object sender, EventArgs e)
+        {
+            lmbDown = false;
+        }
+
+        private void canvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            const float pixelToModelSpaceScalingFactor = 0.001f;
+
+            if (lmbDown)
+            {
+                var motionDuringThisTick = new Vector2(e.X, e.Y) - mousePositionAtLastTick;
+
+                var translation = new Vector3(motionDuringThisTick.X, motionDuringThisTick.Y, 0) * 
+                    pixelToModelSpaceScalingFactor;
+
+                // We are moving the view plane, not the volume, but this causes mouse motion to feel opposite from
+                // what's intuitive. So we move the view plane translation in the opposite direciton as the mouse.
+                translation = translation * -1;
+
+                renderer.ViewPlane.Move(translation);
+                redrawVolumeRender();
+            }
+
+            mousePositionAtLastTick = new Vector2(e.X, e.Y);
+        }
+
+        private void redrawVolumeRender()
+        {
             var render = renderer.Render();
             var output = ResizeImage(render, canvas.Width, canvas.Height);
 
