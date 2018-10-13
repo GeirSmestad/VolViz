@@ -41,10 +41,12 @@ namespace VolViz.Data
             0, 0, 0, 1);
 
         public Matrix4x4 TranslationMatrix = UnityMatrix;
-        public Matrix4x4 RotationMatrix = UnityMatrix;
+        public Matrix4x4 RotationMatrixX = UnityMatrix;
+        public Matrix4x4 RotationMatrixY = UnityMatrix;
         public Matrix4x4 ScalingMatrix = UnityMatrix;
         
         private Vector3 currentTranslation;
+        private Vector2 currentRotation;
 
         public ViewPlane()
         {
@@ -77,12 +79,46 @@ namespace VolViz.Data
             RecalculateVectors();
         }
 
+        // Zooms the view in or out by changing the size of the view plane
+        public void Zoom(float factor)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Rotate(Vector2 rotation)
+        {
+            currentRotation = new Vector2(currentRotation.X + rotation.X, currentRotation.Y + rotation.Y);
+
+            RotationMatrixX = Matrix4x4.CreateRotationX(currentRotation.X, );
+            RotationMatrixY = Matrix4x4.CreateRotationY(currentRotation.Y);
+
+            RecalculateVectors();
+        }
+
         private void RecalculateVectors()
         {
-            UpperLeft = Vector3.Transform(InitialUpperLeft, TranslationMatrix);
-            UpperRight = Vector3.Transform(InitialUpperRight, TranslationMatrix);
-            BottomRight = Vector3.Transform(InitialBottomRight, TranslationMatrix);
-            BottomLeft = Vector3.Transform(InitialBottomLeft, TranslationMatrix);
+            UpperLeft = Vector3.Transform(InitialUpperLeft, RotationMatrixX);
+            UpperRight = Vector3.Transform(InitialUpperRight, RotationMatrixX);
+            BottomRight = Vector3.Transform(InitialBottomRight, RotationMatrixX);
+            BottomLeft = Vector3.Transform(InitialBottomLeft, RotationMatrixX);
+
+            UpperLeft = Vector3.Transform(UpperLeft, RotationMatrixY);
+            UpperRight = Vector3.Transform(UpperRight, RotationMatrixY);
+            BottomRight = Vector3.Transform(BottomRight, RotationMatrixY);
+            BottomLeft = Vector3.Transform(BottomLeft, RotationMatrixY);
+
+            UpperLeft = Vector3.Transform(UpperLeft, TranslationMatrix);
+            UpperRight = Vector3.Transform(UpperRight, TranslationMatrix);
+            BottomRight = Vector3.Transform(BottomRight, TranslationMatrix);
+            BottomLeft = Vector3.Transform(BottomLeft, TranslationMatrix);
+            
+            UpDirection = UpperLeft - BottomLeft;
+            RightDirection = UpperRight - UpperLeft;
+            UpDirection = Vector3.Normalize(UpDirection);
+            RightDirection = Vector3.Normalize(RightDirection);
+
+            ProjectionDirection = Vector3.Cross(RightDirection, UpDirection);
+            ProjectionDirection = Vector3.Normalize(ProjectionDirection);
         }
     }
 }

@@ -33,9 +33,6 @@ namespace VolViz.Logic
             {
                 for (int y = 0; y < ySize; y++)
                 {
-                    //var currentPixel = dataset.Contents[x, y, sliceIndex];
-                    //var currentIntensity = (int)(currentPixel * 255);
-
                     var currentColor = CastRayFirstHit(x/(float)xSize, y/(float)ySize);
 
                     result.SetPixel(x, y, currentColor);

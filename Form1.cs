@@ -18,6 +18,8 @@ namespace VolViz
     public partial class Form1 : Form
     {
         bool lmbDown = false;
+        bool rmbDown = false;
+
         Vector2 mousePositionAtLastTick = new Vector2(0,0);
 
         public Form1()
@@ -73,27 +75,38 @@ namespace VolViz
         
         private void canvas_MouseDown(object sender, MouseEventArgs e)
         {
-            lmbDown = true;
+            if (e.Button == MouseButtons.Left)
+            {
+                lmbDown = true;
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                rmbDown = true;
+            }
         }
 
         private void canvas_MouseUp(object sender, MouseEventArgs e)
         {
             lmbDown = false;
+            rmbDown = false;
         }
 
         private void canvas_MouseLeave(object sender, EventArgs e)
         {
             lmbDown = false;
+            rmbDown = false;
         }
 
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
             const float pixelToModelSpaceScalingFactor = 0.001f;
+            const float rotationScalingFactor = 0.0035f;
+
+            var motionDuringThisTick = new Vector2(e.X, e.Y) - mousePositionAtLastTick;
+            bool projectionHasChanged = false;
 
             if (lmbDown)
             {
-                var motionDuringThisTick = new Vector2(e.X, e.Y) - mousePositionAtLastTick;
-
                 var translation = new Vector3(motionDuringThisTick.X, motionDuringThisTick.Y, 0) * 
                     pixelToModelSpaceScalingFactor;
 
@@ -102,6 +115,21 @@ namespace VolViz
                 translation = translation * -1;
 
                 renderer.ViewPlane.Move(translation);
+                projectionHasChanged = true;
+            }
+
+            if (rmbDown)
+            {
+                // Y motion intuitively corresponds to X axis rotation, and vice versa.
+                var rotation = new Vector2(motionDuringThisTick.Y, motionDuringThisTick.X) *
+                    rotationScalingFactor;
+
+                renderer.ViewPlane.Rotate(rotation);
+                projectionHasChanged = true;
+            }
+
+            if (projectionHasChanged)
+            {
                 redrawVolumeRender();
             }
 
@@ -113,7 +141,15 @@ namespace VolViz
             var render = renderer.Render();
             var output = ResizeImage(render, canvas.Width, canvas.Height);
 
+            var previousFrame = canvas.Image;
+
             canvas.Image = output;
+
+            if (previousFrame != null)
+            {
+                previousFrame.Dispose();
+            }
+
             canvas.Refresh();
         }
 
