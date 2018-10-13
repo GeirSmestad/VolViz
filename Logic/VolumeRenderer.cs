@@ -29,13 +29,22 @@ namespace VolViz.Logic
         {
             var result = new Bitmap(xSize, ySize);
 
+            Color[,] buffer = new Color[xSize, ySize];
+
+            for (int x = 0; x < xSize; x++)
+            {
+                Parallel.For(0, ySize, y =>
+                {
+                    var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
+                    buffer[x, y] = currentColor;
+                });
+            }
+
             for (int x = 0; x < xSize; x++)
             {
                 for (int y = 0; y < ySize; y++)
                 {
-                    var currentColor = CastRayFirstHit(x/(float)xSize, y/(float)ySize);
-
-                    result.SetPixel(x, y, currentColor);
+                    result.SetPixel(x, y, buffer[x, y]);
                 }
             }
 
