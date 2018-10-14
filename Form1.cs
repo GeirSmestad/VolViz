@@ -177,5 +177,14 @@ namespace VolViz
 
             return destImage;
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            volume = Data.Volume.GetTestWireframeVolume();
+
+            renderer = new VolumeRenderer(volume);
+
+            redrawVolumeRender();
+        }
     }
 }

@@ -93,5 +93,44 @@ namespace VolViz.Data
 
             return result;
         }
+
+        public static Volume GetTestWireframeVolume()
+        {
+            var result = new Volume(128, 128, 128);
+
+            for (int x = 0; x < 128; x++)
+            {
+                for (int y = 0; y < 128; y++)
+                {
+                    for (int z = 0; z < 128; z++)
+                    {
+                        if (x < 5 && y < 5 ||
+                            y < 5 && z < 5 ||
+                            x < 5 && z < 5 ||
+
+                            x < 5 && y > 123 ||
+                            y < 5 && z > 123 ||
+                            x < 5 && z > 123 ||
+
+                            x > 123 && y < 5 ||
+                            y > 123 && z < 5 ||
+                            x > 123 && z < 5 ||
+
+                            x > 123 && y > 123 ||
+                            y > 123 && z > 123 ||
+                            x > 123 && z > 123)
+                        {
+                            result.Contents[x, y, z] = 0.7f;
+                        }
+                        else
+                        {
+                            result.Contents[x, y, z] = 0.0f;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }

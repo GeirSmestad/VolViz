@@ -89,7 +89,7 @@ namespace VolViz.Data
         {
             currentRotation = new Vector2(currentRotation.X + rotation.X, currentRotation.Y + rotation.Y);
 
-            RotationMatrixX = Matrix4x4.CreateRotationX(currentRotation.X, );
+            RotationMatrixX = Matrix4x4.CreateRotationX(currentRotation.X);
             RotationMatrixY = Matrix4x4.CreateRotationY(currentRotation.Y);
 
             RecalculateVectors();
