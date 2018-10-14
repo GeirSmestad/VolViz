@@ -35,7 +35,8 @@ namespace VolViz.Logic
             {
                 Parallel.For(0, ySize, y =>
                 {
-                    var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
                     buffer[x, y] = currentColor;
                 });
             }
@@ -60,12 +61,14 @@ namespace VolViz.Logic
         /// </summary>
         private Color CastRayFirstHit(float viewportX, float viewportY)
         {
-            Vector4 result = new Vector4(0,0,0,0);
-            
+            Vector4 result = new Vector4(0, 0, 0, 0);
+
+            // TODO: Viewport size varies when zooming. Need to consider viewport size when calculating
+            // ray position if scaling/zooming is implemented.
             var rayPosition = ViewPlane.BottomLeft +
                 ViewPlane.RightDirection * viewportX +
                 ViewPlane.UpDirection * viewportY;
-            
+
             float rayLength = 0;
             float cutoffDistance = 1.2f;
             float threshold = 0.0f;
@@ -74,23 +77,66 @@ namespace VolViz.Logic
             {
                 // TODO: Inefficient to translate to model space on every step. This can be handled better.
                 float voxelValue = Volume.GetVoxelClosest(
-                    rayPosition.X * Volume.SizeOfLargestDimension, 
-                    rayPosition.Y * Volume.SizeOfLargestDimension, 
+                    rayPosition.X * Volume.SizeOfLargestDimension,
+                    rayPosition.Y * Volume.SizeOfLargestDimension,
                     rayPosition.Z * Volume.SizeOfLargestDimension);
 
                 if (voxelValue > threshold)
                 {
-                    return Color.FromArgb( 
-                        (int)(voxelValue*255), 
-                        (int)(voxelValue*255),
-                        (int)(voxelValue*255));
+                    return Color.FromArgb(
+                        (int)(voxelValue * 255),
+                        (int)(voxelValue * 255),
+                        (int)(voxelValue * 255));
                 }
 
                 rayPosition += ViewPlane.ProjectionDirection * stepSize;
                 rayLength += stepSize;
             }
 
-            return Color.FromArgb(0,0,0);
+            return Color.FromArgb(0, 0, 0);
+        }
+
+        /// <summary>
+        /// Cast a ray from the viewport, through the volume.
+        /// 
+        /// Rendering method is maximum intensity projection.
+        /// </summary>
+        private Color CastRayMip(float viewportX, float viewportY)
+        {
+            Vector4 result = new Vector4(0, 0, 0, 0);
+
+            // TODO: Viewport size varies when zooming. Need to consider viewport size when calculating
+            // ray position if scaling/zooming is implemented.
+            var rayPosition = ViewPlane.BottomLeft +
+                ViewPlane.RightDirection * viewportX +
+                ViewPlane.UpDirection * viewportY;
+
+            float rayLength = 0;
+            float cutoffDistance = 2;
+
+            float maximumIntensity = 0;
+
+            while (rayLength < cutoffDistance)
+            {
+                // TODO: Inefficient to translate to model space on every step. This can be handled better.
+                float voxelValue = Volume.GetVoxelClosest(
+                    rayPosition.X * Volume.SizeOfLargestDimension,
+                    rayPosition.Y * Volume.SizeOfLargestDimension,
+                    rayPosition.Z * Volume.SizeOfLargestDimension);
+
+                if (voxelValue > maximumIntensity)
+                {
+                    maximumIntensity = voxelValue;
+                }
+
+                rayPosition += ViewPlane.ProjectionDirection * stepSize;
+                rayLength += stepSize;
+            }
+
+            return Color.FromArgb(
+                (int)(maximumIntensity * 255),
+                (int)(maximumIntensity * 255),
+                (int)(maximumIntensity * 255));
         }
     }
 }

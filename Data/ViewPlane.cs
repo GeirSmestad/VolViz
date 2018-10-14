@@ -25,6 +25,8 @@ namespace VolViz.Data
         public Vector3 BottomRight;
         public Vector3 BottomLeft;
 
+        // TODO: Might be better to handle initial positioning through translation rather than hard-code it.
+        // I have a theory that this screws up rotation.
         private Vector3 InitialUpperLeft = new Vector3(-0.2f, 1.2f, -0.3f);
         private Vector3 InitialUpperRight = new Vector3(1.2f, 1.2f, -0.3f);
         private Vector3 InitialBottomRight = new Vector3(1.2f, -1.2f, -0.3f);
