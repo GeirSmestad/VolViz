@@ -33,6 +33,7 @@
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
+            this.labelViewportState = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.canvas)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
@@ -87,11 +88,21 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // labelViewportState
+            // 
+            this.labelViewportState.AutoSize = true;
+            this.labelViewportState.Location = new System.Drawing.Point(12, 790);
+            this.labelViewportState.Name = "labelViewportState";
+            this.labelViewportState.Size = new System.Drawing.Size(121, 13);
+            this.labelViewportState.TabIndex = 5;
+            this.labelViewportState.Text = "Viewport state (pending)";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(793, 777);
+            this.ClientSize = new System.Drawing.Size(793, 812);
+            this.Controls.Add(this.labelViewportState);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.trackBar1);
@@ -113,6 +124,7 @@
         private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Label labelViewportState;
     }
 }
 

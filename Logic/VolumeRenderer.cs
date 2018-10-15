@@ -14,8 +14,8 @@ namespace VolViz.Logic
         public Volume Volume;
         public ViewPlane ViewPlane;
 
-        private int xSize = 128;
-        private int ySize = 128;
+        private int xSize = 64;
+        private int ySize = 64;
 
         private float stepSize = 0.01f;
 
@@ -35,8 +35,8 @@ namespace VolViz.Logic
             {
                 Parallel.For(0, ySize, y =>
                 {
-                    //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
                     buffer[x, y] = currentColor;
                 });
             }
@@ -63,23 +63,21 @@ namespace VolViz.Logic
         {
             Vector4 result = new Vector4(0, 0, 0, 0);
 
-            // TODO: Viewport size varies when zooming. Need to consider viewport size when calculating
-            // ray position if scaling/zooming is implemented.
             var rayPosition = ViewPlane.BottomLeft +
-                ViewPlane.RightDirection * viewportX +
-                ViewPlane.UpDirection * viewportY;
+                ViewPlane.RightSpan * viewportX +
+                ViewPlane.UpSpan * viewportY;
 
             float rayLength = 0;
-            float cutoffDistance = 1.2f;
-            float threshold = 0.0f;
+            float cutoffDistance = 3f;
+            float threshold = 0f;
 
             while (rayLength < cutoffDistance)
             {
                 // TODO: Inefficient to translate to model space on every step. This can be handled better.
-                float voxelValue = Volume.GetVoxelClosest(
-                    rayPosition.X * Volume.SizeOfLargestDimension,
-                    rayPosition.Y * Volume.SizeOfLargestDimension,
-                    rayPosition.Z * Volume.SizeOfLargestDimension);
+                float voxelValue = Volume.GetCenteredVoxelClosest(
+                    rayPosition.X,
+                    rayPosition.Y,
+                    rayPosition.Z);
 
                 if (voxelValue > threshold)
                 {
@@ -108,8 +106,8 @@ namespace VolViz.Logic
             // TODO: Viewport size varies when zooming. Need to consider viewport size when calculating
             // ray position if scaling/zooming is implemented.
             var rayPosition = ViewPlane.BottomLeft +
-                ViewPlane.RightDirection * viewportX +
-                ViewPlane.UpDirection * viewportY;
+                ViewPlane.RightSpan * viewportX +
+                ViewPlane.UpSpan * viewportY;
 
             float rayLength = 0;
             float cutoffDistance = 2;

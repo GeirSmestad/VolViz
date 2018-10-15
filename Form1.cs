@@ -134,6 +134,11 @@ namespace VolViz
             }
 
             mousePositionAtLastTick = new Vector2(e.X, e.Y);
+
+            if (renderer != null)
+            { 
+                labelViewportState.Text = renderer.ViewPlane.GetStateDescription();
+            }
         }
 
         private void redrawVolumeRender()

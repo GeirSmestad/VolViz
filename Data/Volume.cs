@@ -13,6 +13,10 @@ namespace VolViz.Data
         public int YSize;
         public int ZSize;
 
+        private int centerOfX;
+        private int centerOfY;
+        private int centerOfZ;
+
         public int SliceSize;
         public int NumberOfVoxels;
 
@@ -29,11 +33,30 @@ namespace VolViz.Data
             this.YSize = ySize;
             this.ZSize = zSize;
 
-            //this.SliceSize = xSize * ySize;
+            this.centerOfX = xSize / 2;
+            this.centerOfY = ySize / 2;
+            this.centerOfZ = zSize / 2;
+
             this.NumberOfVoxels = SliceSize * zSize;
             this.SizeOfLargestDimension = Math.Max(Math.Max(XSize, YSize), ZSize);
 
             this.Contents = new float[xSize, ySize, zSize];
+        }
+
+        /// <summary>
+        /// In this transformation, 0 yields the center point in the dataset for each dimension.
+        /// The largest dimension spans a range from -0.5 to +0.5
+        /// </summary>
+        public float GetCenteredVoxelClosest(float x, float y, float z)
+        {
+            float transformedX = centerOfX + (x * SizeOfLargestDimension);
+            float transformedY = centerOfY + (y * SizeOfLargestDimension);
+            float transformedZ = centerOfZ + (z * SizeOfLargestDimension);
+
+            return GetVoxelClosest(
+                transformedX,
+                transformedY,
+                transformedZ);
         }
 
         public float GetVoxelClosest(float x, float y, float z)
