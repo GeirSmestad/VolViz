@@ -15,7 +15,7 @@ namespace VolViz.Data
     /// cube of dimensions 1, or smaller, and is positioned between -0.5 and +0.5
     /// in all 3 dimensions.
     /// </summary>
-    public class ViewPlane
+    public class Viewport
     {
         private readonly Vector3 InitialUpperLeft = new Vector3(-0.7f, 0.7f, 0f);
         private readonly Vector3 InitialUpperRight = new Vector3(0.7f, 0.7f, 0f);
@@ -41,7 +41,7 @@ namespace VolViz.Data
         private Vector2 currentRotation;
         private float currentScaling = 1;
 
-        public ViewPlane()
+        public Viewport()
         {
             // Define a fixed view plane that faces the volume
             UpperLeft = InitialUpperLeft;

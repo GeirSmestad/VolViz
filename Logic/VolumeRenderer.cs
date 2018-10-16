@@ -12,7 +12,7 @@ namespace VolViz.Logic
     public class VolumeRenderer
     {
         public Volume Volume;
-        public ViewPlane ViewPlane;
+        public Viewport Viewport;
 
         private int xSize = 64;
         private int ySize = 64;
@@ -21,7 +21,7 @@ namespace VolViz.Logic
 
         public VolumeRenderer(Volume volume)
         {
-            ViewPlane = new ViewPlane();
+            Viewport = new Viewport();
             this.Volume = volume;
         }
 
@@ -63,9 +63,9 @@ namespace VolViz.Logic
         {
             Vector4 result = new Vector4(0, 0, 0, 0);
 
-            var rayPosition = ViewPlane.BottomLeft +
-                ViewPlane.RightSpan * viewportX +
-                ViewPlane.UpSpan * viewportY;
+            var rayPosition = Viewport.BottomLeft +
+                Viewport.RightSpan * viewportX +
+                Viewport.UpSpan * viewportY;
 
             float rayLength = 0;
             float cutoffDistance = 1.7f;
@@ -87,7 +87,7 @@ namespace VolViz.Logic
                         (int)(voxelValue * 255));
                 }
 
-                rayPosition += ViewPlane.ProjectionDirection * stepSize;
+                rayPosition += Viewport.ProjectionDirection * stepSize;
                 rayLength += stepSize;
             }
 
@@ -103,9 +103,9 @@ namespace VolViz.Logic
         {
             Vector4 result = new Vector4(0, 0, 0, 0);
 
-            var rayPosition = ViewPlane.BottomLeft +
-                ViewPlane.RightSpan * viewportX +
-                ViewPlane.UpSpan * viewportY;
+            var rayPosition = Viewport.BottomLeft +
+                Viewport.RightSpan * viewportX +
+                Viewport.UpSpan * viewportY;
 
             float rayLength = 0;
             float cutoffDistance = 1.7f;
@@ -125,7 +125,7 @@ namespace VolViz.Logic
                     maximumIntensity = voxelValue;
                 }
 
-                rayPosition += ViewPlane.ProjectionDirection * stepSize;
+                rayPosition += Viewport.ProjectionDirection * stepSize;
                 rayLength += stepSize;
             }
 

@@ -124,7 +124,7 @@ namespace VolViz
                 // what's intuitive. So we move the view plane translation in the opposite direciton as the mouse.
                 translation = translation * -1;
 
-                renderer.ViewPlane.Move(translation);
+                renderer.Viewport.Move(translation);
                 projectionHasChanged = true;
             }
 
@@ -134,7 +134,7 @@ namespace VolViz
                 var rotation = new Vector2(motionDuringThisTick.Y, motionDuringThisTick.X) *
                     rotationScalingFactor;
 
-                renderer.ViewPlane.Rotate(rotation);
+                renderer.Viewport.Rotate(rotation);
                 projectionHasChanged = true;
             }
 
@@ -142,7 +142,7 @@ namespace VolViz
             {
                 float zoom = motionDuringThisTick.Y * zoomScalingFactor;
 
-                renderer.ViewPlane.Zoom(zoom);
+                renderer.Viewport.Zoom(zoom);
                 projectionHasChanged = true;
             }
 
@@ -155,7 +155,7 @@ namespace VolViz
 
             if (renderer != null)
             { 
-                labelViewportState.Text = renderer.ViewPlane.GetStateDescription();
+                labelViewportState.Text = renderer.Viewport.GetStateDescription();
             }
         }
 
