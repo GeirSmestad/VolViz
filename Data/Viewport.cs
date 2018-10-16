@@ -14,6 +14,9 @@ namespace VolViz.Data
     /// Assumption is that volume is static, centered in the origin, consists of a 
     /// cube of dimensions 1, or smaller, and is positioned between -0.5 and +0.5
     /// in all 3 dimensions.
+    /// 
+    /// For the purposes of explanations in the code, this particular vector space
+    /// that the viewport operates in is termed 'intermediate space'.
     /// </summary>
     public class Viewport
     {
@@ -98,6 +101,33 @@ namespace VolViz.Data
             RotationMatrixY = Matrix4x4.CreateRotationY(currentRotation.Y);
 
             RecalculateViewPlaneVectors();
+        }
+
+        /// <summary>
+        /// For a ray cast a specific point on the viewport, where the viewport has dimensions
+        /// [0, 1] in both x and y axes, determine the model space location where this ray
+        /// starts its traversal towards the volume. This model space vector can later be used
+        /// to look up voxel intensities directly from the volume dataset.
+        /// 
+        /// The volume in question must be provided, since this determines the conversion
+        /// between intermediate space and the model space.
+        /// </summary>
+        public Vector3 GetInitialRayPositionInModelSpace(Volume model, float x, float y)
+        {
+            var initialRayPositionInIntermediateSpace = this.BottomLeft +
+                this.RightSpan * x +
+                this.UpSpan * y;
+
+            var rayX = initialRayPositionInIntermediateSpace.X;
+            var rayY = initialRayPositionInIntermediateSpace.Y;
+            var rayZ = initialRayPositionInIntermediateSpace.Z;
+
+            // TODO: Is there a matrix to do this conversion easily?
+            float modelSpaceX = model.centerOfX + (rayX * model.SizeOfLargestDimension);
+            float modelSpaceY = model.centerOfY + (rayY * model.SizeOfLargestDimension);
+            float modelSpaceZ = model.centerOfZ + (rayZ * model.SizeOfLargestDimension);
+
+            return new Vector3(modelSpaceX, modelSpaceY, modelSpaceZ);
         }
 
         private void RecalculateViewPlaneVectors()

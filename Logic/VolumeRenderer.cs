@@ -14,10 +14,10 @@ namespace VolViz.Logic
         public Volume Volume;
         public Viewport Viewport;
 
-        private int xSize = 64;
-        private int ySize = 64;
+        private int xSize = 128;
+        private int ySize = 128;
 
-        private float stepSize = 0.01f;
+        private float stepSize = 0.5f;
 
         public VolumeRenderer(Volume volume)
         {
@@ -35,8 +35,8 @@ namespace VolViz.Logic
             {
                 Parallel.For(0, ySize, y =>
                 {
-                    //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
                     buffer[x, y] = currentColor;
                 });
             }
@@ -63,18 +63,21 @@ namespace VolViz.Logic
         {
             Vector4 result = new Vector4(0, 0, 0, 0);
 
-            var rayPosition = Viewport.BottomLeft +
-                Viewport.RightSpan * viewportX +
-                Viewport.UpSpan * viewportY;
+            var rayPosition = Viewport.GetInitialRayPositionInModelSpace(
+                Volume, viewportX, viewportY);
+
+            // Projection direction is identical in intermediate space and model space
+            var projectionDirection = Viewport.ProjectionDirection;
 
             float rayLength = 0;
-            float cutoffDistance = 1.7f;
+
+            // TODO: This could be set to match the (known) size of the volume
+            float cutoffDistance = Volume.SizeOfLargestDimension*1.5f;
             float threshold = 0f;
 
             while (rayLength < cutoffDistance)
             {
-                // TODO: Inefficient to translate to model space on every step. This can be handled better.
-                float voxelValue = Volume.GetCenteredVoxelClosest(
+                float voxelValue = Volume.GetVoxelClosest(
                     rayPosition.X,
                     rayPosition.Y,
                     rayPosition.Z);
@@ -87,7 +90,7 @@ namespace VolViz.Logic
                         (int)(voxelValue * 255));
                 }
 
-                rayPosition += Viewport.ProjectionDirection * stepSize;
+                rayPosition += projectionDirection * stepSize;
                 rayLength += stepSize;
             }
 

@@ -13,9 +13,9 @@ namespace VolViz.Data
         public int YSize;
         public int ZSize;
 
-        private int centerOfX;
-        private int centerOfY;
-        private int centerOfZ;
+        public int centerOfX;
+        public int centerOfY;
+        public int centerOfZ;
 
         public int SliceSize;
         public int NumberOfVoxels;
@@ -46,6 +46,8 @@ namespace VolViz.Data
         /// <summary>
         /// In this transformation, 0 yields the center point in the dataset for each dimension.
         /// The largest dimension spans a range from -0.5 to +0.5
+        /// 
+        /// Parameters x, y and z are in the intermediate space.
         /// </summary>
         public float GetCenteredVoxelClosest(float x, float y, float z)
         {
