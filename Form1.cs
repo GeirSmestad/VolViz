@@ -19,6 +19,7 @@ namespace VolViz
     {
         bool lmbDown = false;
         bool rmbDown = false;
+        bool mmbDown = false;
 
         Vector2 mousePositionAtLastTick = new Vector2(0,0);
 
@@ -83,32 +84,41 @@ namespace VolViz
             {
                 rmbDown = true;
             }
+            if (e.Button == MouseButtons.Middle ||
+                e.Button == MouseButtons.XButton2)
+            {
+                mmbDown = true;
+            }
+            
         }
 
         private void canvas_MouseUp(object sender, MouseEventArgs e)
         {
             lmbDown = false;
             rmbDown = false;
+            mmbDown = false;
         }
 
         private void canvas_MouseLeave(object sender, EventArgs e)
         {
             lmbDown = false;
             rmbDown = false;
+            mmbDown = false;
         }
 
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            const float pixelToModelSpaceScalingFactor = 0.001f;
+            const float translationScalingFactor = 0.001f;
             const float rotationScalingFactor = 0.0035f;
+            const float zoomScalingFactor = 0.002f;
 
             var motionDuringThisTick = new Vector2(e.X, e.Y) - mousePositionAtLastTick;
             bool projectionHasChanged = false;
 
             if (lmbDown)
             {
-                var translation = new Vector3(motionDuringThisTick.X, motionDuringThisTick.Y, 0) * 
-                    pixelToModelSpaceScalingFactor;
+                var translation = new Vector3(motionDuringThisTick.X, motionDuringThisTick.Y, 0) *
+                    translationScalingFactor;
 
                 // We are moving the view plane, not the volume, but this causes mouse motion to feel opposite from
                 // what's intuitive. So we move the view plane translation in the opposite direciton as the mouse.
@@ -125,6 +135,14 @@ namespace VolViz
                     rotationScalingFactor;
 
                 renderer.ViewPlane.Rotate(rotation);
+                projectionHasChanged = true;
+            }
+
+            if (mmbDown)
+            {
+                float zoom = motionDuringThisTick.Y * zoomScalingFactor;
+
+                renderer.ViewPlane.Zoom(zoom);
                 projectionHasChanged = true;
             }
 

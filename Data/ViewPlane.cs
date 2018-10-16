@@ -25,8 +25,6 @@ namespace VolViz.Data
         public Vector3 BottomRight;
         public Vector3 BottomLeft;
 
-        // TODO: Might be better to handle initial positioning through translation rather than hard-code it.
-        // I have a theory that this screws up rotation.
         private Vector3 InitialUpperLeft = new Vector3(-0.7f, 0.7f, 0f);
         private Vector3 InitialUpperRight = new Vector3(0.7f, 0.7f, 0f);
         private Vector3 InitialBottomRight = new Vector3(0.7f, -0.7f, 0f);
@@ -45,6 +43,7 @@ namespace VolViz.Data
         
         private Vector3 currentTranslation;
         private Vector2 currentRotation;
+        private float currentScaling = 1;
 
         public ViewPlane()
         {
@@ -66,22 +65,24 @@ namespace VolViz.Data
         {
             currentTranslation += translation;
 
-            // TODO: Might use Matrix4x4.CreateTranslation instead :) I wanted to try this from scratch.
-            TranslationMatrix = new Matrix4x4(
-                1, 0, 0, currentTranslation.X,
-                0, 1, 0, currentTranslation.Y,
-                0, 0, 1, currentTranslation.Z,
-                0, 0, 0, 1);
-
             TranslationMatrix = Matrix4x4.CreateTranslation(currentTranslation);
 
             RecalculateVectors();
         }
 
         // Zooms the view in or out by changing the size of the view plane
-        public void Zoom(float factor)
+        public void Zoom(float increment)
         {
-            throw new NotImplementedException();
+            currentScaling += increment;
+
+            if (currentScaling <= 0.01)
+            {
+                currentScaling = 0.01f;
+            }
+
+            ScalingMatrix = Matrix4x4.CreateScale(currentScaling);
+
+            RecalculateVectors();
         }
 
         public void Rotate(Vector2 rotation)
@@ -96,11 +97,15 @@ namespace VolViz.Data
 
         private void RecalculateVectors()
         {
-            UpperLeft = Vector3.Transform(InitialUpperLeft, TranslationMatrix);
-            UpperRight = Vector3.Transform(InitialUpperRight, TranslationMatrix);
-            BottomRight = Vector3.Transform(InitialBottomRight, TranslationMatrix);
-            BottomLeft = Vector3.Transform(InitialBottomLeft, TranslationMatrix);
+            UpperLeft = Vector3.Transform(InitialUpperLeft, ScalingMatrix);
+            UpperRight = Vector3.Transform(InitialUpperRight, ScalingMatrix);
+            BottomRight = Vector3.Transform(InitialBottomRight, ScalingMatrix);
+            BottomLeft = Vector3.Transform(InitialBottomLeft, ScalingMatrix);
 
+            UpperLeft = Vector3.Transform(UpperLeft, TranslationMatrix);
+            UpperRight = Vector3.Transform(UpperRight, TranslationMatrix);
+            BottomRight = Vector3.Transform(BottomRight, TranslationMatrix);
+            BottomLeft = Vector3.Transform(BottomLeft, TranslationMatrix);
 
             UpperLeft = Vector3.Transform(UpperLeft, RotationMatrixX);
             UpperRight = Vector3.Transform(UpperRight, RotationMatrixX);
@@ -126,7 +131,8 @@ namespace VolViz.Data
                 $"R: {currentRotation.X:0.00}, {currentRotation.Y:0.00}  /  " +
                 $"P: {ProjectionDirection.X:0.00}, {ProjectionDirection.Y:0.00}, {ProjectionDirection.Z:0.00}  /  " +
                 $"Vul: {UpperLeft.X:0.00}, {UpperLeft.Y:0.00}, {UpperLeft.Z:0.00}  /  " +
-                $"Vbr: {BottomRight.X:0.00}, {BottomRight.Y:0.00}, {BottomRight.Z:0.00}  /  ";
+                $"Vbr: {BottomRight.X:0.00}, {BottomRight.Y:0.00}, {BottomRight.Z:0.00}  /  " +
+                $"Scale: {currentScaling:0.00}";
         }
     }
 }
