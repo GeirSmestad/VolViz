@@ -35,8 +35,8 @@ namespace VolViz.Logic
             {
                 Parallel.For(0, ySize, y =>
                 {
-                    var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
                     buffer[x, y] = currentColor;
                 });
             }
@@ -68,7 +68,7 @@ namespace VolViz.Logic
                 ViewPlane.UpSpan * viewportY;
 
             float rayLength = 0;
-            float cutoffDistance = 3f;
+            float cutoffDistance = 1.7f;
             float threshold = 0f;
 
             while (rayLength < cutoffDistance)
@@ -103,24 +103,22 @@ namespace VolViz.Logic
         {
             Vector4 result = new Vector4(0, 0, 0, 0);
 
-            // TODO: Viewport size varies when zooming. Need to consider viewport size when calculating
-            // ray position if scaling/zooming is implemented.
             var rayPosition = ViewPlane.BottomLeft +
                 ViewPlane.RightSpan * viewportX +
                 ViewPlane.UpSpan * viewportY;
 
             float rayLength = 0;
-            float cutoffDistance = 2;
+            float cutoffDistance = 1.7f;
 
             float maximumIntensity = 0;
 
             while (rayLength < cutoffDistance)
             {
                 // TODO: Inefficient to translate to model space on every step. This can be handled better.
-                float voxelValue = Volume.GetVoxelClosest(
-                    rayPosition.X * Volume.SizeOfLargestDimension,
-                    rayPosition.Y * Volume.SizeOfLargestDimension,
-                    rayPosition.Z * Volume.SizeOfLargestDimension);
+                float voxelValue = Volume.GetCenteredVoxelClosest(
+                    rayPosition.X,
+                    rayPosition.Y,
+                    rayPosition.Z);
 
                 if (voxelValue > maximumIntensity)
                 {
