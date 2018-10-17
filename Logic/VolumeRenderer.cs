@@ -17,7 +17,7 @@ namespace VolViz.Logic
         private int xSize = 128;
         private int ySize = 128;
 
-        private float stepSize = 0.5f;
+        private float stepSize = 1f;
 
         public VolumeRenderer(Volume volume)
         {
@@ -114,22 +114,30 @@ namespace VolViz.Logic
         {
             Vector4 result = new Vector4(0, 0, 0, 0);
 
-            var rayPosition = Viewport.BottomLeft +
-                Viewport.RightSpan * viewportX +
-                Viewport.UpSpan * viewportY;
+            float lengthOfRayInsideVolume;
+
+            // TODO: Unhappy with the use of tuples/nullable as return values. Rewrite.
+            var rayPosition = Viewport.GetInitialRayPositionInModelSpace(
+                Volume, viewportX, viewportY, out lengthOfRayInsideVolume);
+
+            if (rayPosition == null)
+            {
+                // This ray does not intersect the volume. It can be skipped.
+                return Color.FromArgb(64, 0, 0);
+            }
 
             float rayLength = 0;
-            float cutoffDistance = 1.7f;
+            float cutoffDistance = lengthOfRayInsideVolume;
 
             float maximumIntensity = 0;
 
             while (rayLength < cutoffDistance)
             {
                 // TODO: Inefficient to translate to model space on every step. This can be handled better.
-                float voxelValue = Volume.GetCenteredVoxelClosest(
-                    rayPosition.X,
-                    rayPosition.Y,
-                    rayPosition.Z);
+                float voxelValue = Volume.GetVoxelClosest(
+                    rayPosition.Value.X,
+                    rayPosition.Value.Y,
+                    rayPosition.Value.Z);
 
                 if (voxelValue > maximumIntensity)
                 {
