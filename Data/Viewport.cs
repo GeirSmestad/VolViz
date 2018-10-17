@@ -112,7 +112,7 @@ namespace VolViz.Data
         /// The volume in question must be provided, since this determines the conversion
         /// between intermediate space and the model space.
         /// </summary>
-        public Vector3 GetInitialRayPositionInModelSpace(Volume model, float x, float y)
+        public Vector3? GetInitialRayPositionInModelSpace(Volume model, float x, float y, out float traversalLength)
         {
             var initialRayPositionInIntermediateSpace = this.BottomLeft +
                 this.RightSpan * x +
@@ -127,7 +127,99 @@ namespace VolViz.Data
             float modelSpaceY = model.centerOfY + (rayY * model.SizeOfLargestDimension);
             float modelSpaceZ = model.centerOfZ + (rayZ * model.SizeOfLargestDimension);
 
-            return new Vector3(modelSpaceX, modelSpaceY, modelSpaceZ);
+            var initialModelSpaceVector = new Vector3(modelSpaceX, modelSpaceY, modelSpaceZ);
+
+            // TODO: Unhappy with the use of tuples/null as return values. Rewrite.
+            var boxIntersectionLocations = GetPointsWhereViewportRaysIntersectVolume(
+                model, 
+                initialModelSpaceVector);
+
+            if (boxIntersectionLocations == null)
+            {
+                traversalLength = -1;
+                return null; // No intersection.
+            }
+
+            traversalLength = Vector3.Distance(
+                boxIntersectionLocations.Item1,
+                boxIntersectionLocations.Item2);
+
+            return boxIntersectionLocations.Item1;
+        }
+
+        /// <summary>
+        /// Using a naïve implementation of the ray-box intersection algorithm, determine the 
+        /// two points in model space where a particular ray projected along the current projection
+        /// vector will enter and leave the model volume, if it hits the volume at all.
+        /// 
+        /// This algorithm determines the factors by which the ray must be "extended" in order
+        /// to hit the entry and exit wall of the volume, respectively.
+        /// </summary>
+        public Tuple<Vector3, Vector3> GetPointsWhereViewportRaysIntersectVolume(Volume model, Vector3 initialRayPosition)
+        {
+            float t0x = (0 - initialRayPosition.X) / ProjectionDirection.X;
+            float t1x = (model.XSize - initialRayPosition.X) / ProjectionDirection.X;
+
+            if (t0x > t1x)
+            {
+                float temp = t0x;
+                t0x = t1x;
+                t1x = temp;
+            }
+
+            float t0y = (0 - initialRayPosition.Y) / ProjectionDirection.Y;
+            float t1y = (model.YSize - initialRayPosition.Y) / ProjectionDirection.Y;
+
+            if (t0y > t1y)
+            {
+                float temp = t0y;
+                t0y = t1y;
+                t1y = temp;
+            }
+
+            float tmin = Math.Max(t0x, t0y);
+            float tmax = Math.Min(t1x, t1y);
+
+            if (t0x > t1y || t0y > t1x)
+            {
+                return null; // No intersection
+            }
+
+            float t0z = (0 - initialRayPosition.Z) / ProjectionDirection.Z;
+            float t1z = (model.ZSize - initialRayPosition.Z) / ProjectionDirection.Z;
+
+            if (t0z > t1z)
+            {
+                float temp = t0z;
+                t0z = t1z;
+                t1z = temp;
+            }
+
+            if (tmin > t1z || t0z > tmax)
+            {
+                return null; // No intersection
+            }
+
+            if (t0z > tmin)
+            {
+                tmin = t0z;
+            }
+
+            if (t1z < tmax)
+            {
+                tmax = t1z;
+            }
+
+            // TODO: There is a risk we will lose the "edge" voxels of the volume when traversing,
+            // since the initial and final position of the ray computed here might be slightly
+            // inside the volume.
+            //
+            // Fix this by "stepping back" from or "moving forward" through the volume
+            // one increment of tmin and tmax before returning the result vectors.
+
+            return new Tuple<Vector3, Vector3>(
+                initialRayPosition + ProjectionDirection * tmin,
+                initialRayPosition + ProjectionDirection * tmax);
         }
 
         private void RecalculateViewPlaneVectors()

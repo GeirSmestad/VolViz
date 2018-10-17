@@ -63,24 +63,32 @@ namespace VolViz.Logic
         {
             Vector4 result = new Vector4(0, 0, 0, 0);
 
+            float lengthOfRayInsideVolume;
+
+            // TODO: Unhappy with the use of tuples/nullable as return values. Rewrite.
             var rayPosition = Viewport.GetInitialRayPositionInModelSpace(
-                Volume, viewportX, viewportY);
+                Volume, viewportX, viewportY, out lengthOfRayInsideVolume);
+
+            if (rayPosition == null)
+            {
+                // This ray does not intersect the volume. It can be skipped.
+                return Color.FromArgb(64, 0, 0);
+            }
 
             // Projection direction is identical in intermediate space and model space
             var projectionDirection = Viewport.ProjectionDirection;
 
             float rayLength = 0;
 
-            // TODO: This could be set to match the (known) size of the volume
-            float cutoffDistance = Volume.SizeOfLargestDimension*1.5f;
+            float cutoffDistance = lengthOfRayInsideVolume;
             float threshold = 0f;
 
             while (rayLength < cutoffDistance)
             {
                 float voxelValue = Volume.GetVoxelClosest(
-                    rayPosition.X,
-                    rayPosition.Y,
-                    rayPosition.Z);
+                    rayPosition.Value.X,
+                    rayPosition.Value.Y,
+                    rayPosition.Value.Z);
 
                 if (voxelValue > threshold)
                 {
