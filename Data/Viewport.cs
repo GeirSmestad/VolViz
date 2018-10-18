@@ -104,49 +104,89 @@ namespace VolViz.Data
         }
 
         /// <summary>
-        /// For a ray cast a specific point on the viewport, where the viewport has dimensions
-        /// [0, 1] in both x and y axes, determine the model space location where this ray
-        /// starts its traversal towards the volume. This model space vector can later be used
-        /// to look up voxel intensities directly from the volume dataset.
+        /// For a ray cast from a specific point on this viewport, where the viewport has
+        /// dimensions [0, 1] in both x and y axes, determine the model space location where
+        /// this ray enters and exits the volume. Return false if the ray will not intersect
+        /// the volume at all.
+        /// 
+        /// The model space vector(s) can later be used to look up voxel intensities directly
+        /// from the volume dataset.
         /// 
         /// The volume in question must be provided, since this determines the conversion
         /// between intermediate space and the model space.
         /// </summary>
-        public Vector3? GetInitialRayPositionInModelSpace(Volume model, float x, float y, out float traversalLength)
+        public bool GetRayBoxIntersectionPointsInModelSpace(Volume model, float x, float y, 
+            out Vector3 entryPoint, out Vector3 exitPoint)
         {
             var initialRayPositionInIntermediateSpace = this.BottomLeft +
                 this.RightSpan * x +
                 this.UpSpan * y;
-
+            
             var rayX = initialRayPositionInIntermediateSpace.X;
             var rayY = initialRayPositionInIntermediateSpace.Y;
             var rayZ = initialRayPositionInIntermediateSpace.Z;
-
-            // TODO: Is there a matrix to do this conversion easily?
+            
             float modelSpaceX = model.centerOfX + (rayX * model.SizeOfLargestDimension);
             float modelSpaceY = model.centerOfY + (rayY * model.SizeOfLargestDimension);
             float modelSpaceZ = model.centerOfZ + (rayZ * model.SizeOfLargestDimension);
 
             var initialModelSpaceVector = new Vector3(modelSpaceX, modelSpaceY, modelSpaceZ);
-
-            // TODO: Unhappy with the use of tuples/null as return values. Rewrite.
+            
             var boxIntersectionLocations = GetPointsWhereViewportRaysIntersectVolume(
-                model, 
-                initialModelSpaceVector);
+                model, initialModelSpaceVector);
 
             if (boxIntersectionLocations == null)
             {
-                traversalLength = -1;
-                return null; // No intersection.
+                entryPoint = exitPoint = Vector3.Zero;
+                return false; // No intersection.
             }
 
-            traversalLength = Vector3.Distance(
-                boxIntersectionLocations.Item1,
-                boxIntersectionLocations.Item2);
-
-            return boxIntersectionLocations.Item1;
+            entryPoint = boxIntersectionLocations.Item1;
+            exitPoint = boxIntersectionLocations.Item2;
+            
+            return true;
         }
 
+        public string GetStateDescription()
+        {
+            return
+                $"T: {currentTranslation.X:0.00}, {currentTranslation.Y:0.00}, {currentTranslation.Z:0.00}  /  " +
+                $"R: {currentRotation.X:0.00}, {currentRotation.Y:0.00}  /  " +
+                $"P: {ProjectionDirection.X:0.00}, {ProjectionDirection.Y:0.00}, {ProjectionDirection.Z:0.00}  /  " +
+                $"Vul: {UpperLeft.X:0.00}, {UpperLeft.Y:0.00}, {UpperLeft.Z:0.00}  /  " +
+                $"Vbr: {BottomRight.X:0.00}, {BottomRight.Y:0.00}, {BottomRight.Z:0.00}  /  " +
+                $"Scale: {currentScaling:0.00}";
+        }
+
+        private void RecalculateViewPlaneVectors()
+        {
+            UpperLeft = Vector3.Transform(InitialUpperLeft, ScalingMatrix);
+            UpperRight = Vector3.Transform(InitialUpperRight, ScalingMatrix);
+            BottomRight = Vector3.Transform(InitialBottomRight, ScalingMatrix);
+            BottomLeft = Vector3.Transform(InitialBottomLeft, ScalingMatrix);
+
+            UpperLeft = Vector3.Transform(UpperLeft, TranslationMatrix);
+            UpperRight = Vector3.Transform(UpperRight, TranslationMatrix);
+            BottomRight = Vector3.Transform(BottomRight, TranslationMatrix);
+            BottomLeft = Vector3.Transform(BottomLeft, TranslationMatrix);
+
+            UpperLeft = Vector3.Transform(UpperLeft, RotationMatrixX);
+            UpperRight = Vector3.Transform(UpperRight, RotationMatrixX);
+            BottomRight = Vector3.Transform(BottomRight, RotationMatrixX);
+            BottomLeft = Vector3.Transform(BottomLeft, RotationMatrixX);
+
+            UpperLeft = Vector3.Transform(UpperLeft, RotationMatrixY);
+            UpperRight = Vector3.Transform(UpperRight, RotationMatrixY);
+            BottomRight = Vector3.Transform(BottomRight, RotationMatrixY);
+            BottomLeft = Vector3.Transform(BottomLeft, RotationMatrixY);
+
+            UpSpan = UpperLeft - BottomLeft;
+            RightSpan = UpperRight - UpperLeft;
+
+            ProjectionDirection = Vector3.Cross(RightSpan, UpSpan);
+            ProjectionDirection = Vector3.Normalize(ProjectionDirection);
+        }
+        
         /// <summary>
         /// Using a naïve implementation of the ray-box intersection algorithm, determine the 
         /// two points in model space where a particular ray projected along the current projection
@@ -154,6 +194,8 @@ namespace VolViz.Data
         /// 
         /// This algorithm determines the factors by which the ray must be "extended" in order
         /// to hit the entry and exit wall of the volume, respectively.
+        /// 
+        /// Returns null if the ray will not intersect the volume.
         /// </summary>
         public Tuple<Vector3, Vector3> GetPointsWhereViewportRaysIntersectVolume(Volume model, Vector3 initialRayPosition)
         {
@@ -220,46 +262,6 @@ namespace VolViz.Data
             return new Tuple<Vector3, Vector3>(
                 initialRayPosition + ProjectionDirection * tmin,
                 initialRayPosition + ProjectionDirection * tmax);
-        }
-
-        private void RecalculateViewPlaneVectors()
-        {
-            UpperLeft = Vector3.Transform(InitialUpperLeft, ScalingMatrix);
-            UpperRight = Vector3.Transform(InitialUpperRight, ScalingMatrix);
-            BottomRight = Vector3.Transform(InitialBottomRight, ScalingMatrix);
-            BottomLeft = Vector3.Transform(InitialBottomLeft, ScalingMatrix);
-
-            UpperLeft = Vector3.Transform(UpperLeft, TranslationMatrix);
-            UpperRight = Vector3.Transform(UpperRight, TranslationMatrix);
-            BottomRight = Vector3.Transform(BottomRight, TranslationMatrix);
-            BottomLeft = Vector3.Transform(BottomLeft, TranslationMatrix);
-
-            UpperLeft = Vector3.Transform(UpperLeft, RotationMatrixX);
-            UpperRight = Vector3.Transform(UpperRight, RotationMatrixX);
-            BottomRight = Vector3.Transform(BottomRight, RotationMatrixX);
-            BottomLeft = Vector3.Transform(BottomLeft, RotationMatrixX);
-
-            UpperLeft = Vector3.Transform(UpperLeft, RotationMatrixY);
-            UpperRight = Vector3.Transform(UpperRight, RotationMatrixY);
-            BottomRight = Vector3.Transform(BottomRight, RotationMatrixY);
-            BottomLeft = Vector3.Transform(BottomLeft, RotationMatrixY);
-
-            UpSpan = UpperLeft - BottomLeft;
-            RightSpan = UpperRight - UpperLeft;
-
-            ProjectionDirection = Vector3.Cross(RightSpan, UpSpan);
-            ProjectionDirection = Vector3.Normalize(ProjectionDirection);
-        }
-
-        public string GetStateDescription()
-        {
-            return
-                $"T: {currentTranslation.X:0.00}, {currentTranslation.Y:0.00}, {currentTranslation.Z:0.00}  /  " +
-                $"R: {currentRotation.X:0.00}, {currentRotation.Y:0.00}  /  " +
-                $"P: {ProjectionDirection.X:0.00}, {ProjectionDirection.Y:0.00}, {ProjectionDirection.Z:0.00}  /  " +
-                $"Vul: {UpperLeft.X:0.00}, {UpperLeft.Y:0.00}, {UpperLeft.Z:0.00}  /  " +
-                $"Vbr: {BottomRight.X:0.00}, {BottomRight.Y:0.00}, {BottomRight.Z:0.00}  /  " +
-                $"Scale: {currentScaling:0.00}";
         }
     }
 }

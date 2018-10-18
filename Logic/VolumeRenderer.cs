@@ -35,8 +35,8 @@ namespace VolViz.Logic
             {
                 Parallel.For(0, ySize, y =>
                 {
-                    var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
                     buffer[x, y] = currentColor;
                 });
             }
@@ -61,34 +61,33 @@ namespace VolViz.Logic
         /// </summary>
         private Color CastRayFirstHit(float viewportX, float viewportY)
         {
-            Vector4 result = new Vector4(0, 0, 0, 0);
+            const float threshold = 0f;
 
-            float lengthOfRayInsideVolume;
-
-            // TODO: Unhappy with the use of tuples/nullable as return values. Rewrite.
-            var rayPosition = Viewport.GetInitialRayPositionInModelSpace(
-                Volume, viewportX, viewportY, out lengthOfRayInsideVolume);
-
-            if (rayPosition == null)
+            Vector3 entryPoint;
+            Vector3 exitPoint;
+            
+            bool rayIntersectsVolume = Viewport.GetRayBoxIntersectionPointsInModelSpace(
+                Volume, viewportX, viewportY, out entryPoint, out exitPoint);
+            
+            if (!rayIntersectsVolume)
             {
-                // This ray does not intersect the volume. It can be skipped.
                 return Color.FromArgb(64, 0, 0);
             }
+
+            float cutoffDistance = Vector3.Distance(entryPoint, exitPoint);
 
             // Projection direction is identical in intermediate space and model space
             var projectionDirection = Viewport.ProjectionDirection;
 
             float rayLength = 0;
-
-            float cutoffDistance = lengthOfRayInsideVolume;
-            float threshold = 0f;
+            var rayPosition = entryPoint;
 
             while (rayLength < cutoffDistance)
             {
                 float voxelValue = Volume.GetVoxelClosest(
-                    rayPosition.Value.X,
-                    rayPosition.Value.Y,
-                    rayPosition.Value.Z);
+                    rayPosition.X,
+                    rayPosition.Y,
+                    rayPosition.Z);
 
                 if (voxelValue > threshold)
                 {
@@ -112,32 +111,32 @@ namespace VolViz.Logic
         /// </summary>
         private Color CastRayMip(float viewportX, float viewportY)
         {
-            Vector4 result = new Vector4(0, 0, 0, 0);
+            Vector3 entryPoint;
+            Vector3 exitPoint;
 
-            float lengthOfRayInsideVolume;
+            var rayIntersectsVolume = Viewport.GetRayBoxIntersectionPointsInModelSpace(
+                Volume, viewportX, viewportY, out entryPoint, out exitPoint);
 
-            // TODO: Unhappy with the use of tuples/nullable as return values. Rewrite.
-            var rayPosition = Viewport.GetInitialRayPositionInModelSpace(
-                Volume, viewportX, viewportY, out lengthOfRayInsideVolume);
-
-            if (rayPosition == null)
+            if (!rayIntersectsVolume)
             {
-                // This ray does not intersect the volume. It can be skipped.
                 return Color.FromArgb(64, 0, 0);
             }
 
-            float rayLength = 0;
-            float cutoffDistance = lengthOfRayInsideVolume;
+            float cutoffDistance = Vector3.Distance(entryPoint, exitPoint);
 
+            // Projection direction is identical in intermediate space and model space
+            var projectionDirection = Viewport.ProjectionDirection;
+
+            float rayLength = 0;
             float maximumIntensity = 0;
+            var rayPosition = entryPoint;
 
             while (rayLength < cutoffDistance)
             {
-                // TODO: Inefficient to translate to model space on every step. This can be handled better.
                 float voxelValue = Volume.GetVoxelClosest(
-                    rayPosition.Value.X,
-                    rayPosition.Value.Y,
-                    rayPosition.Value.Z);
+                    rayPosition.X,
+                    rayPosition.Y,
+                    rayPosition.Z);
 
                 if (voxelValue > maximumIntensity)
                 {
