@@ -93,6 +93,7 @@
     <Content Include="Datasets\lobster-120x120x34.txt" />
     <Content Include="Datasets\skewedhead-184x256x170.txt" />
     <Content Include="Datasets\stagbeetle-277x277x164.txt" />
+    <Content Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

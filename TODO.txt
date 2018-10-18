@@ -1,0 +1,11 @@
+﻿Transfer function
+Transfer function editor
+Phong shading
+Gradient-based transfer function
+User interface for easier interaction with rendering parameters
+Exponential refinement after view has been selected & not interacted with for a bit
+
+Refactoring rendering algorithms to separate files
+Refactoring common rendering parameters to their own objects for better readability
+
+Direct3D acceleration via pixel shaders
