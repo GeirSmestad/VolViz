@@ -36,7 +36,9 @@ namespace VolViz.Logic
                 Parallel.For(0, ySize, y =>
                 {
                     //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayAverageProjection(x / (float)xSize, y / (float)ySize);
+
                     buffer[x, y] = currentColor;
                 });
             }
@@ -119,7 +121,7 @@ namespace VolViz.Logic
 
             if (!rayIntersectsVolume)
             {
-                return Color.FromArgb(64, 0, 0);
+                return Color.FromArgb(0, 0, 64);
             }
 
             float cutoffDistance = Vector3.Distance(entryPoint, exitPoint);
@@ -151,6 +153,57 @@ namespace VolViz.Logic
                 (int)(maximumIntensity * 255),
                 (int)(maximumIntensity * 255),
                 (int)(maximumIntensity * 255));
+        }
+
+
+        /// <summary>
+        /// Cast a ray from the viewport, through the volume.
+        /// 
+        /// Rendering method is average projection, i.e. a close analogy to a X-ray photograph
+        /// </summary>
+        private Color CastRayAverageProjection(float viewportX, float viewportY)
+        {
+            Vector3 entryPoint;
+            Vector3 exitPoint;
+
+            var rayIntersectsVolume = Viewport.GetRayBoxIntersectionPointsInModelSpace(
+                Volume, viewportX, viewportY, out entryPoint, out exitPoint);
+
+            if (!rayIntersectsVolume)
+            {
+                return Color.FromArgb(0, 64, 0);
+            }
+
+            float cutoffDistance = Vector3.Distance(entryPoint, exitPoint);
+
+            // Projection direction is identical in intermediate space and model space
+            var projectionDirection = Viewport.ProjectionDirection;
+
+            float rayLength = 0;
+            float numberOfSamples = 0;
+            float totalAbsorption = 0;
+            var rayPosition = entryPoint;
+
+            while (rayLength < cutoffDistance)
+            {
+                float voxelValue = Volume.GetVoxelClosest(
+                    rayPosition.X,
+                    rayPosition.Y,
+                    rayPosition.Z);
+
+                numberOfSamples += 1;
+                totalAbsorption += voxelValue;
+
+                rayPosition += Viewport.ProjectionDirection * stepSize;
+                rayLength += stepSize;
+            }
+
+            float averageAbsorption = totalAbsorption / numberOfSamples; 
+
+            return Color.FromArgb(
+                (int)(averageAbsorption * 255),
+                (int)(averageAbsorption * 255),
+                (int)(averageAbsorption * 255));
         }
     }
 }
