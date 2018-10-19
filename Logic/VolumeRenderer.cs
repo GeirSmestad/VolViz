@@ -36,9 +36,9 @@ namespace VolViz.Logic
                 Parallel.For(0, ySize, y =>
                 {
                     //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
                     //var currentColor = CastRayAverageProjection(x / (float)xSize, y / (float)ySize);
-                    var currentColor = CastRayDvr(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayDvr(x / (float)xSize, y / (float)ySize);
 
                     buffer[x, y] = currentColor;
                 });

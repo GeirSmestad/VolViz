@@ -17,11 +17,12 @@ namespace VolViz
 {
     public partial class Form1 : Form
     {
-        bool lmbDown = false;
-        bool rmbDown = false;
-        bool mmbDown = false;
+        private bool lmbDown = false;
+        private bool rmbDown = false;
+        private bool mmbDown = false;
 
-        Vector2 mousePositionAtLastTick = new Vector2(0,0);
+        private Vector2 mousePositionAtLastTick = new Vector2(0,0);
+        private TransferFunctionEditor _transferFunctionEditor;
 
         public Form1()
         {
@@ -33,10 +34,17 @@ namespace VolViz
 
         private void button1_Click(object sender, EventArgs e)
         {
-            volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
+            _transferFunctionEditor = new TransferFunctionEditor(transferFunctionUpdated);
 
-            trackBar1.Maximum = volume.ZSize-1;
+            this.AddOwnedForm(_transferFunctionEditor);
 
+            _transferFunctionEditor.Show();
+
+            var parentLocation = this.DesktopLocation;
+            var parentSize = this.Size;
+            _transferFunctionEditor.SetDesktopLocation(
+                parentLocation.X + parentSize.Width, 
+                parentLocation.Y);
 
         }
 
@@ -67,7 +75,8 @@ namespace VolViz
 
         private void button2_Click(object sender, EventArgs e)
         {
-            volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
+            //volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
+            volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\skewed_head.dat");
 
             renderer = new VolumeRenderer(volume);
 
@@ -208,6 +217,12 @@ namespace VolViz
             renderer = new VolumeRenderer(volume);
 
             redrawVolumeRender();
+        }
+        
+        private void transferFunctionUpdated()
+        {
+            // Dummy example of how to update the rendering UI when TF has been updated
+            labelViewportState.Text = _transferFunctionEditor.GetTransferFunction().counter.ToString();
         }
     }
 }
