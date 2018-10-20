@@ -102,6 +102,7 @@ namespace VolViz
 
         private void colorDesigner_MouseMove(object sender, MouseEventArgs e)
         {
+            // TODO: Switch selection when hilight has changed and mouse is down
             if (_colorDesigner_lmbDown && _indexOfSelectedNode != -1)
             {
                 var height = colorDesigner.Height;
@@ -127,6 +128,7 @@ namespace VolViz
         /// </summary>
         private int GetIndexOfNodeAtPixelCoordinate(int x)
         {
+            // TODO: Also take Y coordinate into account; this is relevant when there are node close in X but not Y
             float width = colorDesigner.Width;
 
             float min = x - nodeSize / 2f;
