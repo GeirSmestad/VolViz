@@ -62,15 +62,20 @@ namespace VolViz
             {
                 _colorDesigner_lmbDown = true;
 
-                // TODO: Currently adding new node here. Select OR add node, depending on X axis position
-                var newNode = new TfNode(
-                    e.X / (float)width,
-                    invWinFormsY(e.Y, height) / height,
-                    new Vector3(1, 1, 1));
+                if (_indexOfHilightedNode != -1)
+                {
+                    _indexOfSelectedNode = _indexOfHilightedNode;
+                }
+                else
+                {
+                    var newNode = new TfNode(
+                        e.X / (float)width,
+                        invWinFormsY(e.Y, height) / height,
+                        new Vector3(1, 1, 1));
 
-                _nodesOfCurrentTf.Add(newNode);
-                SortListOfTfNodes();
-
+                    _nodesOfCurrentTf.Add(newNode);
+                    SortListOfTfNodes();
+                }
             }
 
             if (e.Button == MouseButtons.Right)
@@ -83,31 +88,31 @@ namespace VolViz
 
         private void colorDesigner_MouseUp(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                _colorDesigner_lmbDown = false;
-            }
+            _colorDesigner_lmbDown = false;
+            _indexOfSelectedNode = -1;
         }
 
         private void colorDesigner_MouseLeave(object sender, EventArgs e)
         {
             _colorDesigner_lmbDown = false;
+            _indexOfSelectedNode = -1;
 
             RedrawColorDesigner();
         }
 
         private void colorDesigner_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_colorDesigner_lmbDown)
+            if (_colorDesigner_lmbDown && _indexOfSelectedNode != -1)
             {
+                var height = colorDesigner.Height;
+
                 // Move currently selected node to next coordinates
+                var nodeToMove = _nodesOfCurrentTf[_indexOfHilightedNode];
+                nodeToMove.OutputOpacity = invWinFormsY(e.Y, height) / (float)height;
             }
             else
             {
                 _indexOfHilightedNode = GetIndexOfNodeAtPixelCoordinate(e.X);
-                // If mouse over node, hilight slightly
-
-                // Else, clear highlight
             }
 
             RedrawColorDesigner();
@@ -166,7 +171,7 @@ namespace VolViz
                         width * previousNode.InputValue, invCartesianY(height * previousNode.OutputOpacity, height),
                         width * currentNode.InputValue, invCartesianY(height * currentNode.OutputOpacity, height));
                 }
-                
+
                 for (int i = 0; i < _nodesOfCurrentTf.Count; i++)
                 {
                     var currentNode = _nodesOfCurrentTf[i];
