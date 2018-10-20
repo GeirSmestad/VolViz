@@ -47,6 +47,10 @@
             this.colorDesigner.Size = new System.Drawing.Size(680, 225);
             this.colorDesigner.TabIndex = 0;
             this.colorDesigner.TabStop = false;
+            this.colorDesigner.MouseDown += new System.Windows.Forms.MouseEventHandler(this.colorDesigner_MouseDown);
+            this.colorDesigner.MouseLeave += new System.EventHandler(this.colorDesigner_MouseLeave);
+            this.colorDesigner.MouseMove += new System.Windows.Forms.MouseEventHandler(this.colorDesigner_MouseMove);
+            this.colorDesigner.MouseUp += new System.Windows.Forms.MouseEventHandler(this.colorDesigner_MouseUp);
             // 
             // alphaDesigner
             // 

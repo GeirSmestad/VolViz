@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\TfNode.cs" />
     <Compile Include="Data\TransferFunction.cs" />
     <Compile Include="Data\Viewport.cs" />
     <Compile Include="Data\Volume.cs" />
