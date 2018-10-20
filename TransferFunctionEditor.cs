@@ -49,6 +49,9 @@ namespace VolViz
         };
 
         private int _indexOfSelectedNode = -1;
+        private int _indexOfHilightedNode = -1;
+
+        private const int nodeSize = 10; // Draw size of node in pixels
 
         private void colorDesigner_MouseDown(object sender, MouseEventArgs e)
         {
@@ -58,7 +61,7 @@ namespace VolViz
             if (e.Button == MouseButtons.Left)
             {
                 _colorDesigner_lmbDown = true;
-                
+
                 // TODO: Currently adding new node here. Select OR add node, depending on X axis position
                 var newNode = new TfNode(
                     e.X / (float)width,
@@ -67,7 +70,7 @@ namespace VolViz
 
                 _nodesOfCurrentTf.Add(newNode);
                 SortListOfTfNodes();
-                
+
             }
 
             if (e.Button == MouseButtons.Right)
@@ -101,12 +104,44 @@ namespace VolViz
             }
             else
             {
+                _indexOfHilightedNode = GetIndexOfNodeAtPixelCoordinate(e.X);
                 // If mouse over node, hilight slightly
 
                 // Else, clear highlight
             }
 
             RedrawColorDesigner();
+        }
+
+        /// <summary>
+        /// For an X coordinate in the color designer, return the index in the TF node
+        /// list that corresponds to this coordinate, or -1 if this coordinate does not correspond
+        /// to a particular node of the transfer function being edited.
+        /// 
+        /// We only care about the X coordinate counts when selecting TF nodes
+        /// </summary>
+        private int GetIndexOfNodeAtPixelCoordinate(int x)
+        {
+            float width = colorDesigner.Width;
+
+            float min = x - nodeSize / 2f;
+            float max = x + nodeSize / 2f;
+
+            float minCoordinateInTfSpace = min / width;
+            float maxCoordinateInTfSpace = max / width;
+
+            // Can be more efficient with binary search, but likely not a problem
+            for (int i = 0; i < _nodesOfCurrentTf.Count; i++)
+            {
+                var node = _nodesOfCurrentTf[i];
+                if (node.InputValue > minCoordinateInTfSpace &&
+                    node.InputValue < maxCoordinateInTfSpace)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private Bitmap DrawColorDesigner()
@@ -119,20 +154,36 @@ namespace VolViz
             using (Graphics g = Graphics.FromImage(result))
             {
                 g.FillRectangle(new SolidBrush(Color.Gray), 0, 0, width, height);
-            
+
                 // TODO: Draw histogram
 
-            for (int i = 1; i < _nodesOfCurrentTf.Count; i++)
-            {
-                var previousNode = _nodesOfCurrentTf[i - 1];
-                var currentNode = _nodesOfCurrentTf[i];
+                for (int i = 1; i < _nodesOfCurrentTf.Count; i++)
+                {
+                    var previousNode = _nodesOfCurrentTf[i - 1];
+                    var currentNode = _nodesOfCurrentTf[i];
 
                     g.DrawLine(Pens.Black,
                         width * previousNode.InputValue, invCartesianY(height * previousNode.OutputOpacity, height),
-                        width * currentNode.InputValue, invCartesianY(height*currentNode.OutputOpacity, height));
-            }
-            
-                // TODO: Draw the boxes that indicate the points of the current TF
+                        width * currentNode.InputValue, invCartesianY(height * currentNode.OutputOpacity, height));
+                }
+                
+                for (int i = 0; i < _nodesOfCurrentTf.Count; i++)
+                {
+                    var currentNode = _nodesOfCurrentTf[i];
+                    var brush = Brushes.LightBlue;
+
+                    if (_indexOfHilightedNode == i)
+                    {
+                        brush = Brushes.Yellow;
+                    }
+
+                    g.FillEllipse(brush,
+                        width * currentNode.InputValue - nodeSize / 2f,
+                        invCartesianY(height * currentNode.OutputOpacity, height) - nodeSize / 2f,
+                        nodeSize,
+                        nodeSize
+                        );
+                }
             }
 
             return result;
@@ -147,7 +198,7 @@ namespace VolViz
         {
             return (viewHeight - cartesianYCoordinate);
         }
-        
+
         /// <summary>
         /// In WinForms, (0,0) is the top-left, not the bottom-left. Translate a Y coordinate from the
         /// coordinate system of WinForms, to the (cartesian) coordinate system where (0, height) is the
