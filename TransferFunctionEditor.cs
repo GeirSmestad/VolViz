@@ -9,18 +9,20 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VolViz.Data;
+using VolViz.Logic;
 
 namespace VolViz
 {
     public partial class TransferFunctionEditor : Form
     {
+        private VolumeRenderer _volumeRenderer;
         private TransferFunction _transferFunction;
         private Action _transferFunctionUpdated;
 
-        public TransferFunctionEditor(Action transferFunctionUpdated)
+        public TransferFunctionEditor(VolumeRenderer volumeRenderer, Action transferFunctionUpdated)
         {
-            _transferFunction = new TransferFunction();
-
+            _volumeRenderer = volumeRenderer;
+            _transferFunction = volumeRenderer.TransferFunction;
             _transferFunctionUpdated = transferFunctionUpdated;
 
             InitializeComponent();
@@ -33,13 +35,9 @@ namespace VolViz
 
         private void buttonSave_Click(object sender, EventArgs e)
         {
-            // Debug only, to test window interaction
-            _transferFunction.counter += 1;
-            _transferFunctionUpdated();
         }
-
-
-        // TODO: Drawing & mouse detection logic can be extracted to helper class
+        
+        // TODO: Drawing & mouse detection logic might be extracted to helper class
 
         private bool _colorDesigner_lmbDown = false;
 

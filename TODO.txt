@@ -15,3 +15,4 @@ Refactoring rendering algorithms to separate files
 Refactoring common rendering parameters to their own objects for better readability
 
 Direct3D acceleration via pixel shaders
+Fix slightly wonky rotation if possible

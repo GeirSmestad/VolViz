@@ -34,7 +34,7 @@ namespace VolViz
 
         private void button1_Click(object sender, EventArgs e)
         {
-            _transferFunctionEditor = new TransferFunctionEditor(transferFunctionUpdated);
+            _transferFunctionEditor = new TransferFunctionEditor(renderer, transferFunctionUpdated);
 
             this.AddOwnedForm(_transferFunctionEditor);
 
@@ -78,7 +78,7 @@ namespace VolViz
             volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
             //volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\skewed_head.dat");
 
-            renderer = new VolumeRenderer(volume, _transferFunctionEditor.GetTransferFunction());
+            renderer = new VolumeRenderer(volume);
 
             redrawVolumeRender();
         }
@@ -220,7 +220,7 @@ namespace VolViz
         {
             volume = Data.Volume.GetTestWireframeVolume();
 
-            renderer = new VolumeRenderer(volume, _transferFunctionEditor.GetTransferFunction());
+            renderer = new VolumeRenderer(volume);
 
             redrawVolumeRender();
         }

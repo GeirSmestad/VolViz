@@ -9,8 +9,6 @@ namespace VolViz.Data
 {
     public class TransferFunction
     {
-        public int counter = 0; // For testing purposes only, will be removed shortly
-
         public List<TfNode> Nodes { get; set; }
 
         private Dictionary<float, Vector3> _colorLookupTable;
@@ -25,6 +23,8 @@ namespace VolViz.Data
                 new TfNode(0, 0, new Vector3(0, 0, 0)),
                 new TfNode(1, 1, new Vector3(1, 1, 1))
             };
+
+            RecalculateLookupTables();
         }
 
         public Vector3 GetColorOfIntensity(float voxelValue, bool useLookupTable = true)

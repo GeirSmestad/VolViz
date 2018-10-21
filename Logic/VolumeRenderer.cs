@@ -13,18 +13,17 @@ namespace VolViz.Logic
     {
         public Volume Volume;
         public Viewport Viewport;
-        public TransferFunction TransferFunction;
+        public TransferFunction TransferFunction { get; set; }
 
         private int xSize = 128;
         private int ySize = 128;
 
         private float stepSize = 1f;
-
-        // TODO: Volume renderer should ideally construct & own its own transfer function. Refactor.
-        public VolumeRenderer(Volume volume, TransferFunction transferFunction)
+        
+        public VolumeRenderer(Volume volume)
         {
             Viewport = new Viewport();
-            TransferFunction = transferFunction;
+            TransferFunction = new TransferFunction();
             this.Volume = volume;
         }
 
