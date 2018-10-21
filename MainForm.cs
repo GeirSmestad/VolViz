@@ -15,7 +15,7 @@ using VolViz.Logic;
 
 namespace VolViz
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private bool lmbDown = false;
         private bool rmbDown = false;
@@ -24,7 +24,7 @@ namespace VolViz
         private Vector2 mousePositionAtLastTick = new Vector2(0,0);
         private TransferFunctionEditor _transferFunctionEditor;
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
         }
@@ -34,6 +34,11 @@ namespace VolViz
 
         private void button1_Click(object sender, EventArgs e)
         {
+            if (renderer == null)
+            {
+                return;
+            }
+
             _transferFunctionEditor = new TransferFunctionEditor(renderer, transferFunctionUpdated);
 
             this.AddOwnedForm(_transferFunctionEditor);
@@ -46,31 +51,6 @@ namespace VolViz
                 parentLocation.X + parentSize.Width, 
                 parentLocation.Y);
 
-        }
-
-        private void DrawSliceToCanvas(int sliceIndex, Volume dataset)
-        {
-            canvas.Image = new Bitmap(dataset.XSize, dataset.YSize);
-
-            for (int x = 0; x < dataset.XSize; x++)
-            {
-                for (int y = 0; y < dataset.YSize; y++)
-                {
-                    var currentPixel = dataset.Contents[x, y, sliceIndex];
-                    var currentIntensity = (int)(currentPixel* 255);
-
-                    var currentColor = Color.FromArgb(currentIntensity, currentIntensity, currentIntensity);
-
-                    ((Bitmap)canvas.Image).SetPixel(x, y, currentColor);
-                }
-            }
-
-            canvas.Refresh();
-        }
-
-        private void trackBar1_Scroll(object sender, EventArgs e)
-        {
-            DrawSliceToCanvas(trackBar1.Value, volume);
         }
 
         private void button2_Click(object sender, EventArgs e)

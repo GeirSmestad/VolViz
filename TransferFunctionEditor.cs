@@ -26,6 +26,7 @@ namespace VolViz
             _transferFunctionUpdated = transferFunctionUpdated;
 
             InitializeComponent();
+            RedrawColorDesigner();
         }
 
         public TransferFunction GetTransferFunction()
@@ -44,7 +45,7 @@ namespace VolViz
         private int _indexOfSelectedNode = -1;
         private int _indexOfHilightedNode = -1;
 
-        private const int nodeSize = 10; // Draw size of node in pixels
+        private const int nodeSize = 15; // Draw size of node in pixels
 
         private void colorDesigner_MouseDown(object sender, MouseEventArgs e)
         {
