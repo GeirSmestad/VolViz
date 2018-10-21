@@ -13,15 +13,18 @@ namespace VolViz.Logic
     {
         public Volume Volume;
         public Viewport Viewport;
+        public TransferFunction TransferFunction;
 
         private int xSize = 128;
         private int ySize = 128;
 
         private float stepSize = 1f;
 
-        public VolumeRenderer(Volume volume)
+        // TODO: Volume renderer should ideally construct & own its own transfer function. Refactor.
+        public VolumeRenderer(Volume volume, TransferFunction transferFunction)
         {
             Viewport = new Viewport();
+            TransferFunction = transferFunction;
             this.Volume = volume;
         }
 
@@ -36,9 +39,9 @@ namespace VolViz.Logic
                 Parallel.For(0, ySize, y =>
                 {
                     //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
+                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
                     //var currentColor = CastRayAverageProjection(x / (float)xSize, y / (float)ySize);
-                    //var currentColor = CastRayDvr(x / (float)xSize, y / (float)ySize);
+                    var currentColor = CastRayDvr(x / (float)xSize, y / (float)ySize);
 
                     buffer[x, y] = currentColor;
                 });
@@ -188,7 +191,7 @@ namespace VolViz.Logic
                 
                 // The following compositing algorithm is the heart of DVR.
                 outputColor = colorAtThisVoxel * opacityAtThisVoxel + (1 - opacityAtThisVoxel) * outputColor;
-                
+              
                 rayPosition += projectionDirection * stepSize;
                 rayLength += stepSize;
             }
@@ -198,20 +201,19 @@ namespace VolViz.Logic
                 (int)(outputColor.Y*255), 
                 (int)(outputColor.Z*255));
         }
-
-        // TODO: Extract to transfer function class
+        
         /// <summary>
         /// This is the transfer function that converts from voxel value to color.
         /// </summary>
         private Vector3 GetColorOfIntensity(float voxelValue)
         {
+            //return TransferFunction.GetColorOfIntensity(voxelValue);
             return new Vector3(voxelValue, voxelValue, voxelValue);
         }
         
-        // TODO: Extract to transfer function class
         private float GetOpacityOfIntensity(float voxelValue)
         {
-            return voxelValue;
+            return TransferFunction.GetOpacityOfIntensity(voxelValue);
         }
 
         /// <summary>

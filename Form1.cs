@@ -75,10 +75,10 @@ namespace VolViz
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
-            volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\skewed_head.dat");
+            volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
+            //volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\skewed_head.dat");
 
-            renderer = new VolumeRenderer(volume);
+            renderer = new VolumeRenderer(volume, _transferFunctionEditor.GetTransferFunction());
 
             redrawVolumeRender();
         }
@@ -170,6 +170,12 @@ namespace VolViz
 
         private void redrawVolumeRender()
         {
+            // TODO: Initialize UI properly so that this hack won't be necessary
+            if (renderer == null)
+            {
+                return; // Hacky workaround for chicken-and-egg problem w/TF editor
+            }
+
             var render = renderer.Render();
             var output = ResizeImage(render, canvas.Width, canvas.Height);
 
@@ -214,15 +220,14 @@ namespace VolViz
         {
             volume = Data.Volume.GetTestWireframeVolume();
 
-            renderer = new VolumeRenderer(volume);
+            renderer = new VolumeRenderer(volume, _transferFunctionEditor.GetTransferFunction());
 
             redrawVolumeRender();
         }
         
         private void transferFunctionUpdated()
         {
-            // Dummy example of how to update the rendering UI when TF has been updated
-            labelViewportState.Text = _transferFunctionEditor.GetTransferFunction().counter.ToString();
+            redrawVolumeRender();
         }
     }
 }

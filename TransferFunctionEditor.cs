@@ -42,11 +42,6 @@ namespace VolViz
         // TODO: Drawing & mouse detection logic can be extracted to helper class
 
         private bool _colorDesigner_lmbDown = false;
-        private List<TfNode> _nodesOfCurrentTf = new List<TfNode>()
-        {
-            new TfNode(0, 0, new Vector3(0,0,0)),
-            new TfNode(1, 1, new Vector3(1,1,1))
-        };
 
         private int _indexOfSelectedNode = -1;
         private int _indexOfHilightedNode = -1;
@@ -68,13 +63,19 @@ namespace VolViz
                 }
                 else
                 {
-                    var newNode = new TfNode(
-                        e.X / (float)width,
-                        invWinFormsY(e.Y, height) / height,
-                        new Vector3(1, 1, 1));
+                    // TODO: Restricting to [0,1] might be accomplished with helper functions...
+                    float inputValue = e.X / (float)width;
+                    if (inputValue < 0) { inputValue = 0; }
+                    if (inputValue > 1) { inputValue = 1; }
 
-                    _nodesOfCurrentTf.Add(newNode);
-                    SortListOfTfNodes();
+                    float outputOpacity = invWinFormsY(e.Y, height) / height;
+                    if (outputOpacity > 1) { outputOpacity = 1; }
+                    if (outputOpacity < 0 ) { outputOpacity = 0; }
+                    
+                    _transferFunction.AddNode(
+                        inputValue,
+                        outputOpacity, 
+                        new Vector3(1, 1, 1));
                 }
             }
 
@@ -84,6 +85,8 @@ namespace VolViz
             }
 
             RedrawColorDesigner();
+            _transferFunction.RecalculateLookupTables();
+            _transferFunctionUpdated();
         }
 
         private void colorDesigner_MouseUp(object sender, MouseEventArgs e)
@@ -98,6 +101,8 @@ namespace VolViz
             _indexOfSelectedNode = -1;
 
             RedrawColorDesigner();
+            _transferFunction.RecalculateLookupTables();
+            _transferFunctionUpdated();
         }
 
         private void colorDesigner_MouseMove(object sender, MouseEventArgs e)
@@ -106,10 +111,14 @@ namespace VolViz
             if (_colorDesigner_lmbDown && _indexOfSelectedNode != -1)
             {
                 var height = colorDesigner.Height;
+                
+                float outputOpacity = invWinFormsY(e.Y, height) / height;
+                if (outputOpacity > 1) { outputOpacity = 1; }
+                if (outputOpacity < 0) { outputOpacity = 0; }
 
                 // Move currently selected node to next coordinates
-                var nodeToMove = _nodesOfCurrentTf[_indexOfHilightedNode];
-                nodeToMove.OutputOpacity = invWinFormsY(e.Y, height) / (float)height;
+                var nodeToMove = _transferFunction.Nodes[_indexOfHilightedNode];
+                nodeToMove.OutputOpacity = outputOpacity;
             }
             else
             {
@@ -117,6 +126,8 @@ namespace VolViz
             }
 
             RedrawColorDesigner();
+            _transferFunction.RecalculateLookupTables();
+            _transferFunctionUpdated();
         }
 
         /// <summary>
@@ -128,7 +139,7 @@ namespace VolViz
         /// </summary>
         private int GetIndexOfNodeAtPixelCoordinate(int x)
         {
-            // TODO: Also take Y coordinate into account; this is relevant when there are node close in X but not Y
+            // TODO: Also take Y coordinate into account; this is relevant when there are nodes close in X but not Y
             float width = colorDesigner.Width;
 
             float min = x - nodeSize / 2f;
@@ -138,9 +149,9 @@ namespace VolViz
             float maxCoordinateInTfSpace = max / width;
 
             // Can be more efficient with binary search, but likely not a problem
-            for (int i = 0; i < _nodesOfCurrentTf.Count; i++)
+            for (int i = 0; i < _transferFunction.Nodes.Count; i++)
             {
-                var node = _nodesOfCurrentTf[i];
+                var node = _transferFunction.Nodes[i];
                 if (node.InputValue > minCoordinateInTfSpace &&
                     node.InputValue < maxCoordinateInTfSpace)
                 {
@@ -164,19 +175,19 @@ namespace VolViz
 
                 // TODO: Draw histogram
 
-                for (int i = 1; i < _nodesOfCurrentTf.Count; i++)
+                for (int i = 1; i < _transferFunction.Nodes.Count; i++)
                 {
-                    var previousNode = _nodesOfCurrentTf[i - 1];
-                    var currentNode = _nodesOfCurrentTf[i];
+                    var previousNode = _transferFunction.Nodes[i - 1];
+                    var currentNode = _transferFunction.Nodes[i];
 
                     g.DrawLine(Pens.Black,
                         width * previousNode.InputValue, invCartesianY(height * previousNode.OutputOpacity, height),
                         width * currentNode.InputValue, invCartesianY(height * currentNode.OutputOpacity, height));
                 }
 
-                for (int i = 0; i < _nodesOfCurrentTf.Count; i++)
+                for (int i = 0; i < _transferFunction.Nodes.Count; i++)
                 {
-                    var currentNode = _nodesOfCurrentTf[i];
+                    var currentNode = _transferFunction.Nodes[i];
                     var brush = Brushes.LightBlue;
 
                     if (_indexOfHilightedNode == i)
@@ -214,22 +225,6 @@ namespace VolViz
         private float invWinFormsY(float winFormsYCoordinate, int viewHeight)
         {
             return (viewHeight - winFormsYCoordinate);
-        }
-
-        private void SortListOfTfNodes()
-        {
-            _nodesOfCurrentTf.Sort((a, b) =>
-            {
-                if (b.InputValue > a.InputValue)
-                {
-                    return -1;
-                }
-                if (a.InputValue > b.InputValue)
-                {
-                    return 1;
-                }
-                return 0;
-            });
         }
 
         private void RedrawColorDesigner()
