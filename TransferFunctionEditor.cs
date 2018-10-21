@@ -81,7 +81,13 @@ namespace VolViz
 
             if (e.Button == MouseButtons.Right)
             {
-                // TODO: If over a node, delete it
+                if (_indexOfHilightedNode != -1 && 
+                    _indexOfHilightedNode != 0 && 
+                    _indexOfHilightedNode != _transferFunction.Nodes.Count-1)
+                {
+                    _transferFunction.Nodes.RemoveAt(_indexOfHilightedNode);
+                    _indexOfHilightedNode = -1;
+                }
             }
 
             RedrawColorDesigner();
@@ -172,9 +178,7 @@ namespace VolViz
             using (Graphics g = Graphics.FromImage(result))
             {
                 g.FillRectangle(new SolidBrush(Color.Gray), 0, 0, width, height);
-
-                // TODO: Draw histogram
-
+                
                 for (int i = 1; i < _transferFunction.Nodes.Count; i++)
                 {
                     var previousNode = _transferFunction.Nodes[i - 1];
@@ -226,7 +230,7 @@ namespace VolViz
         {
             return (viewHeight - winFormsYCoordinate);
         }
-
+        
         private void RedrawColorDesigner()
         {
             var oldImage = colorDesigner.Image;

@@ -1,5 +1,9 @@
-﻿Transfer function
-Transfer function editor
+﻿Transfer function (colors)
+Transfer function editor (colors & UI improvements)
+Histogram in TF editor
+Color/opacity band in TF editor that shows the current TF parameters
+Dragging the *lines* and not just the nodes in TF editor
+Temporarily changing TF on mouse-over of histogram, to hilight the points in the volume that have the intensity in question
 Phong shading
 Trilinear interpolation
 
