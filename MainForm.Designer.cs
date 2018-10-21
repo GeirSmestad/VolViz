@@ -33,6 +33,7 @@
             this.buttonLoadVolume = new System.Windows.Forms.Button();
             this.buttonLoadTestVolume = new System.Windows.Forms.Button();
             this.labelViewportState = new System.Windows.Forms.Label();
+            this.buttonEditRenderConfig = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.canvas)).BeginInit();
             this.SuspendLayout();
             // 
@@ -88,11 +89,22 @@
             this.labelViewportState.TabIndex = 5;
             this.labelViewportState.Text = "Viewport state (pending)";
             // 
+            // buttonEditRenderConfig
+            // 
+            this.buttonEditRenderConfig.Location = new System.Drawing.Point(55, 624);
+            this.buttonEditRenderConfig.Name = "buttonEditRenderConfig";
+            this.buttonEditRenderConfig.Size = new System.Drawing.Size(178, 23);
+            this.buttonEditRenderConfig.TabIndex = 6;
+            this.buttonEditRenderConfig.Text = "Edit render configuration";
+            this.buttonEditRenderConfig.UseVisualStyleBackColor = true;
+            this.buttonEditRenderConfig.Click += new System.EventHandler(this.buttonEditRenderConfig_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(623, 699);
+            this.Controls.Add(this.buttonEditRenderConfig);
             this.Controls.Add(this.labelViewportState);
             this.Controls.Add(this.buttonLoadTestVolume);
             this.Controls.Add(this.buttonLoadVolume);
@@ -114,6 +126,7 @@
         private System.Windows.Forms.Button buttonLoadVolume;
         private System.Windows.Forms.Button buttonLoadTestVolume;
         private System.Windows.Forms.Label labelViewportState;
+        private System.Windows.Forms.Button buttonEditRenderConfig;
     }
 }
 

@@ -23,6 +23,7 @@ namespace VolViz
 
         private Vector2 mousePositionAtLastTick = new Vector2(0,0);
         private TransferFunctionEditor _transferFunctionEditor;
+        private ConfigurationEditor _configurationEditor;
 
         public MainForm()
         {
@@ -208,6 +209,27 @@ namespace VolViz
         private void transferFunctionUpdated()
         {
             redrawVolumeRender();
+        }
+
+        private void buttonEditRenderConfig_Click(object sender, EventArgs e)
+        {
+            if (renderer == null)
+            {
+                return;
+            }
+
+            _configurationEditor = new ConfigurationEditor(renderer, null);
+
+            this.AddOwnedForm(_configurationEditor);
+
+            _configurationEditor.Show();
+
+            var parentLocation = this.DesktopLocation;
+            var parentSize = this.Size;
+
+            _configurationEditor.SetDesktopLocation(
+                parentLocation.X + parentSize.Width,
+                parentLocation.Y + parentSize.Height - _configurationEditor.Height);
         }
     }
 }

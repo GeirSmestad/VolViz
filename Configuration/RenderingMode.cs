@@ -8,9 +8,9 @@ namespace VolViz.Configuration
 {
     public enum RenderingMode
     {
+        Dvr,
         FirstHit,
         Mip,
         Average,
-        Dvr
     }
 }

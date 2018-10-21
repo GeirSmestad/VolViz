@@ -50,6 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfigurationEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigurationEditor.Designer.cs">
+      <DependentUpon>ConfigurationEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Data\TfNode.cs" />
     <Compile Include="Data\TransferFunction.cs" />
     <Compile Include="Data\Viewport.cs" />
@@ -71,6 +77,9 @@
     <Compile Include="TransferFunctionEditor.Designer.cs">
       <DependentUpon>TransferFunctionEditor.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ConfigurationEditor.resx">
+      <DependentUpon>ConfigurationEditor.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -106,7 +115,6 @@
     <Content Include="Datasets\lobster-120x120x34.txt" />
     <Content Include="Datasets\skewedhead-184x256x170.txt" />
     <Content Include="Datasets\stagbeetle-277x277x164.txt" />
-    <Content Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

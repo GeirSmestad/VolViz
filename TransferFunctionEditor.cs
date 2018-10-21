@@ -29,11 +29,6 @@ namespace VolViz
             RedrawColorDesigner();
         }
 
-        public TransferFunction GetTransferFunction()
-        {
-            return _transferFunction;
-        }
-
         private void buttonSave_Click(object sender, EventArgs e)
         {
         }
