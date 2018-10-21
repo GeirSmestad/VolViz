@@ -60,6 +60,8 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Configuration\RenderConfiguration.cs" />
+    <Compile Include="Configuration\RenderingMode.cs" />
     <Compile Include="Logic\VolumeRenderer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

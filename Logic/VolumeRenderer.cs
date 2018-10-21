@@ -6,6 +6,8 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using VolViz.Data;
+using VolViz.Logic;
+using VolViz.Configuration;
 
 namespace VolViz.Logic
 {
@@ -14,6 +16,7 @@ namespace VolViz.Logic
         public Volume Volume;
         public Viewport Viewport;
         public TransferFunction TransferFunction { get; set; }
+        public RenderConfiguration RenderConfiguration { get; set; }
 
         private int xSize = 128;
         private int ySize = 128;
@@ -24,7 +27,11 @@ namespace VolViz.Logic
         {
             Viewport = new Viewport();
             TransferFunction = new TransferFunction();
+            RenderConfiguration = new RenderConfiguration();
             this.Volume = volume;
+
+            // TODO: Give suitable UI dialog a reference to RenderingMode and set it from there
+            RenderConfiguration.RenderingMode = RenderingMode.Dvr;
         }
 
         public Bitmap Render()
@@ -33,14 +40,32 @@ namespace VolViz.Logic
 
             Color[,] buffer = new Color[xSize, ySize];
 
+            Func<float, float, Color> castRayWithSelectedCompositingAlgorithm;
+
+            // TODO: These should go in a helper function.
+            switch (RenderConfiguration.RenderingMode)
+            {
+                case RenderingMode.FirstHit:
+                    castRayWithSelectedCompositingAlgorithm = CastRayFirstHit;
+                    break;
+                case RenderingMode.Mip:
+                    castRayWithSelectedCompositingAlgorithm = CastRayMip;
+                    break;
+                case RenderingMode.Average:
+                    castRayWithSelectedCompositingAlgorithm = CastRayAverageProjection;
+                    break;
+                case RenderingMode.Dvr:
+                    castRayWithSelectedCompositingAlgorithm = CastRayDvr;
+                    break;
+                default:
+                    throw new InvalidOperationException("No rendering algorithm specified");
+            }
+
             for (int x = 0; x < xSize; x++)
             {
                 Parallel.For(0, ySize, y =>
                 {
-                    //var currentColor = CastRayFirstHit(x / (float)xSize, y / (float)ySize);
-                    //var currentColor = CastRayMip(x / (float)xSize, y / (float)ySize);
-                    //var currentColor = CastRayAverageProjection(x / (float)xSize, y / (float)ySize);
-                    var currentColor = CastRayDvr(x / (float)xSize, y / (float)ySize);
+                    var currentColor = castRayWithSelectedCompositingAlgorithm(x / (float)xSize, y / (float)ySize);
 
                     buffer[x, y] = currentColor;
                 });
@@ -151,7 +176,7 @@ namespace VolViz.Logic
                 Vector3 colorAtThisVoxel = GetColorOfIntensity(voxelValue);
                 float opacityAtThisVoxel = GetOpacityOfIntensity(voxelValue);
 
-                if (phongShading)
+                if (RenderConfiguration.UsePhongShading)
                 { // If Phong shading, modify voxel color according to Phong algorithm
                     //Vector3d L = viewPlane.getLightVector(); // Vector pointing towards light source
                     //Vector3d g_n;
@@ -172,7 +197,7 @@ namespace VolViz.Logic
                 }
 
                 // If gradient-based transfer function, modify alpha value according to gradient at this voxel
-                if (gradientBasedTransferFunction)
+                if (RenderConfiguration.UseGradientsInTransferFunction)
                 {
                     //double magnitude;
                     //if (selectedGradientInterpolationMode == 0)
