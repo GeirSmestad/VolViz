@@ -25,6 +25,20 @@ namespace VolViz
             _renderConfigUpdated = renderConfigUpdated;
 
             InitializeComponent();
+
+            foreach (RenderingMode value in Enum.GetValues(typeof(RenderingMode)))
+            {
+                comboBoxRenderMode.Items.Add(value.ToFriendlyString());
+            }
+            comboBoxRenderMode.SelectedIndex = 0;
+        }
+
+        private void comboBoxRenderMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var newRenderingMode = (RenderingMode)comboBoxRenderMode.SelectedIndex;
+            _renderConfiguration.RenderingMode = newRenderingMode;
+
+            _renderConfigUpdated();
         }
     }
 }

@@ -35,15 +35,11 @@
             // 
             this.comboBoxRenderMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxRenderMode.FormattingEnabled = true;
-            this.comboBoxRenderMode.Items.AddRange(new object[] {
-            "Direct volume rendering",
-            "First-hit",
-            "Maximum intensity projection",
-            "Average projection"});
             this.comboBoxRenderMode.Location = new System.Drawing.Point(45, 143);
             this.comboBoxRenderMode.Name = "comboBoxRenderMode";
             this.comboBoxRenderMode.Size = new System.Drawing.Size(193, 21);
             this.comboBoxRenderMode.TabIndex = 0;
+            this.comboBoxRenderMode.SelectedIndexChanged += new System.EventHandler(this.comboBoxRenderMode_SelectedIndexChanged);
             // 
             // ConfigurationEditor
             // 

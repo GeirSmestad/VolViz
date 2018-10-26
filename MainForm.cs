@@ -211,6 +211,12 @@ namespace VolViz
             redrawVolumeRender();
         }
 
+        private void renderConfigurationUpdated()
+        {
+            Console.Out.WriteLine(renderer.RenderConfiguration.RenderingMode);
+            redrawVolumeRender();
+        }
+
         private void buttonEditRenderConfig_Click(object sender, EventArgs e)
         {
             if (renderer == null)
@@ -218,7 +224,7 @@ namespace VolViz
                 return;
             }
 
-            _configurationEditor = new ConfigurationEditor(renderer, null);
+            _configurationEditor = new ConfigurationEditor(renderer, renderConfigurationUpdated);
 
             this.AddOwnedForm(_configurationEditor);
 
