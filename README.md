@@ -15,14 +15,11 @@ The front-end is written in Windows Forms, until I come to my senses. (Likely ne
 * Dragging the *lines* and not just the nodes in TF editor  
 * Temporarily changing TF on mouse-over of histogram, to hilight the points in the volume that have the intensity in question  
 * Phong shading  
-* Trilinear interpolation of data (or gradients)  
 
 * Gradient-based transfer function  
-* User interface for easier interaction with rendering parameters  
 * Exponential refinement after view has been selected & not interacted with for a bit  
 
 * Refactoring rendering algorithms to separate files  
-* Refactoring common rendering parameters to their own objects for better readability  
 
 * Direct3D acceleration via pixel shaders  
 * Fix slightly wonky rotation if convenient  
