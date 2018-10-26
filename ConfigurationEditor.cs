@@ -35,9 +35,11 @@ namespace VolViz
 
         private void comboBoxRenderMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var newRenderingMode = (RenderingMode)comboBoxRenderMode.SelectedIndex;
+            var index = comboBoxRenderMode.SelectedIndex;
+            var newRenderingMode = (RenderingMode)index;
             _renderConfiguration.RenderingMode = newRenderingMode;
 
+            renderModeSpecificControls.SelectTab(index);
             _renderConfigUpdated();
         }
 
@@ -45,6 +47,27 @@ namespace VolViz
         {
             float newStepSize = (float)stepSizeSelector.Value;
             _renderConfiguration.StepSize = newStepSize;
+
+            _renderConfigUpdated();
+        }
+
+        private void checkBoxTrilinearInterpolation_CheckedChanged(object sender, EventArgs e)
+        {
+            _renderConfiguration.UseTrilinearInterpolation = checkBoxTrilinearInterpolation.Checked;
+
+            _renderConfigUpdated();
+        }
+
+        private void checkBoxUseGradientsInTF_CheckedChanged(object sender, EventArgs e)
+        {
+            _renderConfiguration.UseGradientsInTransferFunction = checkBoxUseGradientsInTF.Checked;
+
+            _renderConfigUpdated();
+        }
+
+        private void checkBoxPhongShading_CheckedChanged(object sender, EventArgs e)
+        {
+            _renderConfiguration.UsePhongShading = checkBoxPhongShading.Checked;
 
             _renderConfigUpdated();
         }
