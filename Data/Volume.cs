@@ -43,24 +43,6 @@ namespace VolViz.Data
             this.Contents = new float[xSize, ySize, zSize];
         }
 
-        /// <summary>
-        /// In this transformation, 0 yields the center point in the dataset for each dimension.
-        /// The largest dimension spans a range from -0.5 to +0.5
-        /// 
-        /// Parameters x, y and z are in the intermediate space.
-        /// </summary>
-        public float GetCenteredVoxelClosest(float x, float y, float z)
-        {
-            float transformedX = centerOfX + (x * SizeOfLargestDimension);
-            float transformedY = centerOfY + (y * SizeOfLargestDimension);
-            float transformedZ = centerOfZ + (z * SizeOfLargestDimension);
-
-            return GetVoxelClosest(
-                transformedX,
-                transformedY,
-                transformedZ);
-        }
-
         public float GetVoxelClosest(float x, float y, float z)
         {
             int xVal = (int)Math.Floor(x + 0.5);
