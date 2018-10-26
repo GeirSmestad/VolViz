@@ -20,7 +20,10 @@ namespace VolViz.Logic
 
         private int xSize = 128;
         private int ySize = 128;
-        
+
+        private Func<float, float, float, float> getVoxelBySelectedMethod;
+        private Func<float, float, Color> castRayWithSelectedCompositingAlgorithm;
+
         public VolumeRenderer(Volume volume)
         {
             Viewport = new Viewport();
@@ -28,8 +31,7 @@ namespace VolViz.Logic
             RenderConfiguration = new RenderConfiguration();
             this.Volume = volume;
 
-            // TODO: Give suitable UI dialog a reference to RenderingMode and set it from there
-            RenderConfiguration.RenderingMode = RenderingMode.Dvr;
+            SetLocalRenderingParameters();
         }
 
         public Bitmap Render()
@@ -37,27 +39,8 @@ namespace VolViz.Logic
             var result = new Bitmap(xSize, ySize);
 
             Color[,] buffer = new Color[xSize, ySize];
-
-            Func<float, float, Color> castRayWithSelectedCompositingAlgorithm;
-
-            // TODO: These should go in a helper function.
-            switch (RenderConfiguration.RenderingMode)
-            {
-                case RenderingMode.FirstHit:
-                    castRayWithSelectedCompositingAlgorithm = CastRayFirstHit;
-                    break;
-                case RenderingMode.Mip:
-                    castRayWithSelectedCompositingAlgorithm = CastRayMip;
-                    break;
-                case RenderingMode.Average:
-                    castRayWithSelectedCompositingAlgorithm = CastRayAverageProjection;
-                    break;
-                case RenderingMode.Dvr:
-                    castRayWithSelectedCompositingAlgorithm = CastRayDvr;
-                    break;
-                default:
-                    throw new InvalidOperationException("No rendering algorithm specified");
-            }
+            
+            SetLocalRenderingParameters();
 
             for (int x = 0; x < xSize; x++)
             {
@@ -112,7 +95,7 @@ namespace VolViz.Logic
 
             while (rayLength < cutoffDistance)
             {
-                float voxelValue = Volume.GetVoxelClosest(
+                float voxelValue = getVoxelBySelectedMethod(
                     rayPosition.X,
                     rayPosition.Y,
                     rayPosition.Z);
@@ -165,7 +148,7 @@ namespace VolViz.Logic
 
             while (rayLength < cutoffDistance)
             {
-                var voxelValue = Volume.GetVoxelClosest(
+                var voxelValue = getVoxelBySelectedMethod(
                     rayPosition.X,
                     rayPosition.Y,
                     rayPosition.Z);
@@ -267,7 +250,7 @@ namespace VolViz.Logic
 
             while (rayLength < cutoffDistance)
             {
-                float voxelValue = Volume.GetVoxelClosest(
+                float voxelValue = getVoxelBySelectedMethod(
                     rayPosition.X,
                     rayPosition.Y,
                     rayPosition.Z);
@@ -318,7 +301,7 @@ namespace VolViz.Logic
 
             while (rayLength < cutoffDistance)
             {
-                float voxelValue = Volume.GetVoxelClosest(
+                float voxelValue = getVoxelBySelectedMethod(
                     rayPosition.X,
                     rayPosition.Y,
                     rayPosition.Z);
@@ -336,6 +319,36 @@ namespace VolViz.Logic
                 (int)(averageAbsorption * 255),
                 (int)(averageAbsorption * 255),
                 (int)(averageAbsorption * 255));
+        }
+
+        private void SetLocalRenderingParameters()
+        {
+            if (RenderConfiguration.UseTrilinearInterpolation)
+            {
+                getVoxelBySelectedMethod = Volume.GetVoxelTrilinear;
+            }
+            else
+            {
+                getVoxelBySelectedMethod = Volume.GetVoxelClosest;
+            }
+
+            switch (RenderConfiguration.RenderingMode)
+            {
+                case RenderingMode.FirstHit:
+                    castRayWithSelectedCompositingAlgorithm = CastRayFirstHit;
+                    break;
+                case RenderingMode.Mip:
+                    castRayWithSelectedCompositingAlgorithm = CastRayMip;
+                    break;
+                case RenderingMode.Average:
+                    castRayWithSelectedCompositingAlgorithm = CastRayAverageProjection;
+                    break;
+                case RenderingMode.Dvr:
+                    castRayWithSelectedCompositingAlgorithm = CastRayDvr;
+                    break;
+                default:
+                    throw new InvalidOperationException("No rendering algorithm specified");
+            }
         }
     }
 }

@@ -77,10 +77,41 @@ namespace VolViz.Data
             return Contents[xVal, yVal, zVal];
         }
 
-        public float GetVoxelTrilinear(int x, int y, int z)
+        public float GetVoxelTrilinear(float x, float y, float z)
         {
-            throw new NotImplementedException();
+            // Define corner values for interpolation.
+            float p000 = GetVoxelClosest((int)Floor(x), (int)Floor(y), (int)Floor(z));
+            float p100 = GetVoxelClosest((int)Ceil(x), (int)Floor(y), (int)Floor(z));
+            float p101 = GetVoxelClosest((int)Ceil(x), (int)Floor(y), (int)Ceil(z));
+            float p001 = GetVoxelClosest((int)Floor(x), (int)Floor(y), (int)Ceil(z));
+
+            float p010 = GetVoxelClosest((int)Floor(x), (int)Ceil(y), (int)Floor(z));
+            float p110 = GetVoxelClosest((int)Ceil(x), (int)Ceil(y), (int)Floor(z));
+            float p111 = GetVoxelClosest((int)Ceil(x), (int)Ceil(y), (int)Ceil(z));
+            float p011 = GetVoxelClosest((int)Floor(x), (int)Ceil(y), (int)Ceil(z));
+
+            // Trilinearly interpolate.
+            // See http://en.wikipedia.org/wiki/Trilinear_interpolation#Method
+
+            float xd = x - (int)Floor(x);
+            float yd = y - (int)Floor(y);
+            float zd = z - (int)Floor(z);
+
+            float c00 = p000 * (1 - xd) + p100 * xd;
+            float c10 = p010 * (1 - xd) + p110 * xd;
+            float c01 = p001 * (1 - xd) + p101 * xd;
+            float c11 = p011 * (1 - xd) + p111 * xd;
+
+            float c0 = c00 * (1 - yd) + c10 * yd;
+            float c1 = c01 * (1 - yd) + c11 * yd;
+
+            float c = c0 * (1 - zd) + c1 * zd;
+
+            return c;
         }
+
+        private double Floor(float x) => Math.Floor(x);
+        private double Ceil(float x) => Math.Ceiling(x);
 
         public static Volume LoadFromDatFile(string filename)
         {
