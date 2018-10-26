@@ -12,5 +12,7 @@ namespace VolViz.Configuration
         public bool UseTrilinearInterpolation { get; set; }
         public bool UsePhongShading { get; set; }
         public bool UseGradientsInTransferFunction { get; set; }
+
+        public float StepSize = 1f; // Number of voxel diameters between ray steps
     }
 }

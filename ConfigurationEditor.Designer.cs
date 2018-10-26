@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             this.comboBoxRenderMode = new System.Windows.Forms.ComboBox();
+            this.stepSizeSelector = new System.Windows.Forms.NumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)(this.stepSizeSelector)).BeginInit();
             this.SuspendLayout();
             // 
             // comboBoxRenderMode
@@ -41,14 +43,45 @@
             this.comboBoxRenderMode.TabIndex = 0;
             this.comboBoxRenderMode.SelectedIndexChanged += new System.EventHandler(this.comboBoxRenderMode_SelectedIndexChanged);
             // 
+            // stepSizeSelector
+            // 
+            this.stepSizeSelector.DecimalPlaces = 1;
+            this.stepSizeSelector.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.stepSizeSelector.Location = new System.Drawing.Point(106, 207);
+            this.stepSizeSelector.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.stepSizeSelector.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.stepSizeSelector.Name = "stepSizeSelector";
+            this.stepSizeSelector.Size = new System.Drawing.Size(120, 20);
+            this.stepSizeSelector.TabIndex = 1;
+            this.stepSizeSelector.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.stepSizeSelector.ValueChanged += new System.EventHandler(this.stepSizeSelector_ValueChanged);
+            // 
             // ConfigurationEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(402, 265);
+            this.Controls.Add(this.stepSizeSelector);
             this.Controls.Add(this.comboBoxRenderMode);
             this.Name = "ConfigurationEditor";
             this.Text = "Edit render configuration";
+            ((System.ComponentModel.ISupportInitialize)(this.stepSizeSelector)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -56,5 +89,6 @@
         #endregion
 
         private System.Windows.Forms.ComboBox comboBoxRenderMode;
+        private System.Windows.Forms.NumericUpDown stepSizeSelector;
     }
 }

@@ -20,8 +20,6 @@ namespace VolViz.Logic
 
         private int xSize = 128;
         private int ySize = 128;
-
-        private float stepSize = 1f;
         
         public VolumeRenderer(Volume volume)
         {
@@ -127,8 +125,8 @@ namespace VolViz.Logic
                         (int)(voxelValue * 255));
                 }
 
-                rayPosition += projectionDirection * stepSize;
-                rayLength += stepSize;
+                rayPosition += projectionDirection * RenderConfiguration.StepSize;
+                rayLength += RenderConfiguration.StepSize;
             }
 
             return Color.FromArgb(0, 0, 0);
@@ -216,8 +214,8 @@ namespace VolViz.Logic
                 // The following compositing algorithm is the heart of DVR.
                 outputColor = colorAtThisVoxel * opacityAtThisVoxel + (1 - opacityAtThisVoxel) * outputColor;
               
-                rayPosition += projectionDirection * stepSize;
-                rayLength += stepSize;
+                rayPosition += projectionDirection * RenderConfiguration.StepSize;
+                rayLength += RenderConfiguration.StepSize;
             }
 
             return Color.FromArgb(
@@ -279,8 +277,8 @@ namespace VolViz.Logic
                     maximumIntensity = voxelValue;
                 }
 
-                rayPosition += Viewport.ProjectionDirection * stepSize;
-                rayLength += stepSize;
+                rayPosition += Viewport.ProjectionDirection * RenderConfiguration.StepSize;
+                rayLength += RenderConfiguration.StepSize;
             }
 
             return Color.FromArgb(
@@ -328,8 +326,8 @@ namespace VolViz.Logic
                 numberOfSamples += 1;
                 totalAbsorption += voxelValue;
 
-                rayPosition += Viewport.ProjectionDirection * stepSize;
-                rayLength += stepSize;
+                rayPosition += Viewport.ProjectionDirection * RenderConfiguration.StepSize;
+                rayLength += RenderConfiguration.StepSize;
             }
 
             float averageAbsorption = totalAbsorption / numberOfSamples; 

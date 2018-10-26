@@ -40,5 +40,13 @@ namespace VolViz
 
             _renderConfigUpdated();
         }
+
+        private void stepSizeSelector_ValueChanged(object sender, EventArgs e)
+        {
+            float newStepSize = (float)stepSizeSelector.Value;
+            _renderConfiguration.StepSize = newStepSize;
+
+            _renderConfigUpdated();
+        }
     }
 }
