@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorHelper.cs" />
+    <Compile Include="ColorHSVConverter.cs" />
     <Compile Include="ConfigurationEditor.cs">
       <SubType>Form</SubType>
     </Compile>
