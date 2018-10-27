@@ -19,14 +19,24 @@ namespace VolViz
         private TransferFunction _transferFunction;
         private Action _transferFunctionUpdated;
 
+        private int _hue;
+        private int _saturation;
+        private int _value;
+
         public TransferFunctionEditor(VolumeRenderer volumeRenderer, Action transferFunctionUpdated)
         {
             _volumeRenderer = volumeRenderer;
             _transferFunction = volumeRenderer.TransferFunction;
             _transferFunctionUpdated = transferFunctionUpdated;
 
+            _hue = 180;
+            _saturation = _value = 50;
+
             InitializeComponent();
+
             RedrawColorDesigner();
+            RedrawValuePicker();
+            DrawHueSaturationPicker();
         }
 
         private void buttonSave_Click(object sender, EventArgs e)
@@ -234,6 +244,62 @@ namespace VolViz
             {
                 oldImage.Dispose();
             }
+        }
+
+        private void DrawHueSaturationPicker()
+        {
+            var oldImage = hueSaturationPicker.Image;
+
+            hueSaturationPicker.Image = ColorHelper.DrawHueSaturationCircle();
+            if (oldImage != null)
+            {
+                oldImage.Dispose();
+            }
+        }
+
+        private void RedrawValuePicker()
+        {
+            var oldImage = valuePicker.Image;
+
+            valuePicker.Image = ColorHelper.DrawValueBar(_hue, _saturation);
+            if (oldImage != null)
+            {
+                oldImage.Dispose();
+            }
+        }
+
+        private bool _hueSaturationPicker_lmbDown = false;
+
+        private void hueSaturationPicker_MouseDown(object sender, MouseEventArgs e)
+        {
+            _hueSaturationPicker_lmbDown = true;
+        }
+
+        private void hueSaturationPicker_MouseUp(object sender, MouseEventArgs e)
+        {
+            _hueSaturationPicker_lmbDown = false;
+        }
+
+        private void hueSaturationPicker_MouseMove(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private bool _valuePicker_lmbDown = false;
+
+        private void valuePicker_MouseDown(object sender, MouseEventArgs e)
+        {
+            _valuePicker_lmbDown = true;
+        }
+
+        private void valuePicker_MouseUp(object sender, MouseEventArgs e)
+        {
+            _valuePicker_lmbDown = false;
+        }
+
+        private void valuePicker_MouseMove(object sender, MouseEventArgs e)
+        {
+
         }
     }
 }

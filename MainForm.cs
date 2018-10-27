@@ -56,8 +56,8 @@ namespace VolViz
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
-            volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\skewed_head.dat");
+            volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\lobster.dat");
+            //volume = Data.Volume.LoadFromDatFile("..\\..\\Datasets\\skewed_head.dat");
 
             renderer = new VolumeRenderer(volume);
 

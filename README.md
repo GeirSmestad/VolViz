@@ -16,8 +16,9 @@ The front-end is written in Windows Forms, until I come to my senses. (Likely ne
 * Temporarily changing TF on mouse-over of histogram, to hilight the points in the volume that have the intensity in question  
 * Phong shading  
 
-* Gradient-based transfer function  
 * Exponential refinement after view has been selected & not interacted with for a bit  
+* CPU rendering: Performance improvements. Memoization table for voxel lookup? Deferred gradient calculation?
+* UI to change contribution of gradients to transfer function
 
 * Refactoring rendering algorithms to separate files  
 * Refactoring parts of long files into separate classes
