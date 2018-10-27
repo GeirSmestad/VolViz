@@ -18,10 +18,12 @@ namespace VolViz
         private VolumeRenderer _volumeRenderer;
         private TransferFunction _transferFunction;
         private Action _transferFunctionUpdated;
+        
+        private double _hue;
+        private double _saturation;
+        private double _value;
 
-        private int _hue;
-        private int _saturation;
-        private int _value;
+        private Color _selectedColor;
 
         public TransferFunctionEditor(VolumeRenderer volumeRenderer, Action transferFunctionUpdated)
         {
@@ -268,6 +270,11 @@ namespace VolViz
             }
         }
 
+        private void RedrawSelectedColorPanel()
+        {
+            panelSelectedColor.BackColor = _selectedColor;
+        }
+
         private bool _hueSaturationPicker_lmbDown = false;
 
         private void hueSaturationPicker_MouseDown(object sender, MouseEventArgs e)
@@ -282,7 +289,18 @@ namespace VolViz
 
         private void hueSaturationPicker_MouseMove(object sender, MouseEventArgs e)
         {
+            if (_hueSaturationPicker_lmbDown)
+            {
+                double hue, saturation;
+                ColorHelper.GetHueAndSaturationOfPixelCoords(e.X, e.Y, out hue, out saturation);
 
+                _hue = hue;
+                _saturation = saturation;
+
+                _selectedColor = ColorHSVConverter.ColorFromHSV(_hue, _saturation, _value);
+                RedrawSelectedColorPanel();
+                RedrawValuePicker();
+            }
         }
 
         private bool _valuePicker_lmbDown = false;
@@ -299,7 +317,17 @@ namespace VolViz
 
         private void valuePicker_MouseMove(object sender, MouseEventArgs e)
         {
+            if (_valuePicker_lmbDown)
+            {
+                _value = (e.X / (double)valuePicker.Width) * 100;
+                
+                if (_value < 0) { _value = 0; }
+                if (_value > 100) { _value = 100; }
 
+                _selectedColor = ColorHSVConverter.ColorFromHSV(_hue, _saturation, _value);
+                RedrawSelectedColorPanel();
+                RedrawValuePicker();
+            }
         }
     }
 }

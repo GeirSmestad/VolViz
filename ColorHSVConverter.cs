@@ -9,21 +9,14 @@ namespace VolViz
 {
     public static class ColorHSVConverter
     {
-        public static void ColorToHSV(Color color, out double hue, out double saturation, out double value)
-        {
-            int max = Math.Max(color.R, Math.Max(color.G, color.B));
-            int min = Math.Min(color.R, Math.Min(color.G, color.B));
-
-            hue = color.GetHue();
-            saturation = (max == 0) ? 0 : 1d - (1d * min / max);
-            value = max / 255d;
-        }
-
         /// <summary>
-        /// Hue [0,360], Saturation [0,1], Value [0,1]
+        /// Hue [0,360], Saturation [0,100], Value [0,100]
         /// </summary>
         public static Color ColorFromHSV(double hue, double saturation, double value)
         {
+            value = value / 100;
+            saturation = saturation / 100;
+
             int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
             double f = hue / 60 - Math.Floor(hue / 60);
 
