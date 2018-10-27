@@ -20,6 +20,7 @@ The front-end is written in Windows Forms, until I come to my senses. (Likely ne
 * Exponential refinement after view has been selected & not interacted with for a bit  
 
 * Refactoring rendering algorithms to separate files  
+* Refactoring parts of long files into separate classes
 
 * Direct3D acceleration via pixel shaders  
 * Fix slightly wonky rotation if convenient  

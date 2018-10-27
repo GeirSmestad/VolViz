@@ -192,6 +192,11 @@ namespace VolViz.Logic
 
                     //// It turns out that the luminosiry when compositing when using the gradient is highly dependent on the step size.
                     //alpha_i = alpha_i * (1 - 1 / log(e + magnitude));
+
+                    var magnitude = Volume.GetGradientClosest(rayPosition.X, rayPosition.Y, rayPosition.Z);
+
+                    // It turns out that the luminosiry when compositing when using the gradient is highly dependent on the step size.
+                    opacityAtThisVoxel = opacityAtThisVoxel * (float)(1 - 1 / Math.Log(Math.E + magnitude));
                 }
                 
                 // The following compositing algorithm is the heart of DVR.

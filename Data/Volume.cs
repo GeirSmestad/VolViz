@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Numerics;
 
 namespace VolViz.Data
 {
@@ -23,6 +24,7 @@ namespace VolViz.Data
         public int SizeOfLargestDimension;
 
         public float[,,] Contents;
+        private float[,,] GradientMagnitudes;
 
         /// <summary>
         /// Initialize an empty volume
@@ -58,7 +60,7 @@ namespace VolViz.Data
 
             return Contents[xVal, yVal, zVal];
         }
-
+        
         public float GetVoxelTrilinear(float x, float y, float z)
         {
             // Define corner values for interpolation.
@@ -94,6 +96,61 @@ namespace VolViz.Data
 
         private double Floor(float x) => Math.Floor(x);
         private double Ceil(float x) => Math.Ceiling(x);
+        private float GetVoxel(float x, float y, float z) => GetVoxelClosest(x, y, z);
+
+        // TODO: Closest & trilinear methods can be profitably refactored to use much less code.
+        public float GetGradientClosest(float x, float y, float z)
+        {
+            int xVal = (int)Math.Floor(x + 0.5);
+            int yVal = (int)Math.Floor(y + 0.5);
+            int zVal = (int)Math.Floor(z + 0.5);
+
+            // Anything outside the volume has zero intensity
+            if (xVal < 0 || yVal < 0 || zVal < 0 ||
+                xVal >= XSize || yVal >= YSize || zVal >= ZSize)
+            {
+                return 0;
+            }
+
+            return GradientMagnitudes[xVal, yVal, zVal];
+        }
+
+        public void CalculateGradients()
+        {
+            Vector3[,,] gradients = new Vector3[XSize, YSize, ZSize];
+            GradientMagnitudes = new float[XSize, YSize, ZSize];
+
+            // Calculate gradients and gradient magnitudes.
+
+            for (int z = 0; z < ZSize; z++)
+            {
+                for (int y = 0; y < YSize; y++)
+                {
+                    for (int x = 0; x < XSize; x++)
+                    {
+                        // Edge or corner voxel, gradient is not defined. Set to null vector
+                        if (x < 0 || y < 0 || z < 0 ||
+                            x >= XSize || y >= YSize || z >= ZSize)
+                        {
+                            gradients[x, y, z] = Vector3.Zero;
+                        }
+                        else
+                        {
+                            // Calculate gradient using central differences approximation. Can use Sobel 3D
+                            // or Zucker-Hummel if this is not sufficient.
+
+                            float xDifference = (GetVoxel(x + 1, y, z) - GetVoxel(x - 1, y, z)) * 0.5f;
+                            float yDifference = (GetVoxel(x, y + 1, z) - GetVoxel(x, y - 1, z)) * 0.5f;
+                            float zDifference = (GetVoxel(x, y, z + 1) - GetVoxel(x, y, z - 1)) * 0.5f;
+                            
+                            gradients[x,y,z] = new Vector3(xDifference, yDifference, zDifference);
+                        }
+
+                        GradientMagnitudes[x, y, z] = Vector3.Distance(Vector3.Zero, gradients[x, y, z]);
+                    }
+                }
+            }
+        }
 
         public static Volume LoadFromDatFile(string filename)
         {
@@ -128,6 +185,8 @@ namespace VolViz.Data
                     }
                 }
             }
+
+            result.CalculateGradients();
 
             return result;
         }
@@ -167,6 +226,8 @@ namespace VolViz.Data
                     }
                 }
             }
+
+            result.CalculateGradients();
 
             return result;
         }
