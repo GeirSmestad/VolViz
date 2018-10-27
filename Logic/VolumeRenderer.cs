@@ -22,6 +22,7 @@ namespace VolViz.Logic
         private int ySize = 128;
 
         private Func<float, float, float, float> getVoxelBySelectedMethod;
+        private Func<float, float, float, float> getGradientBySelectedMethod;
         private Func<float, float, Color> castRayWithSelectedCompositingAlgorithm;
 
         public VolumeRenderer(Volume volume)
@@ -122,9 +123,6 @@ namespace VolViz.Logic
         /// </summary>
         private Color CastRayDvr(float viewportX, float viewportY)
         {
-            const bool phongShading = false;
-            const bool gradientBasedTransferFunction = false;
-
             Vector3 entryPoint;
             Vector3 exitPoint;
 
@@ -180,20 +178,7 @@ namespace VolViz.Logic
                 // If gradient-based transfer function, modify alpha value according to gradient at this voxel
                 if (RenderConfiguration.UseGradientsInTransferFunction)
                 {
-                    //double magnitude;
-                    //if (selectedGradientInterpolationMode == 0)
-                    //{
-                    //    magnitude = m_volume->getGradientMagnitude(rayX * scalingFactor, rayY * scalingFactor, rayZ * scalingFactor);
-                    //}
-                    //else if (selectedGradientInterpolationMode == 1)
-                    //{
-                    //    magnitude = m_volume->getGradientMagnitudeTrilinear(rayX * scalingFactor, rayY * scalingFactor, rayZ * scalingFactor);
-                    //}
-
-                    //// It turns out that the luminosiry when compositing when using the gradient is highly dependent on the step size.
-                    //alpha_i = alpha_i * (1 - 1 / log(e + magnitude));
-
-                    var magnitude = Volume.GetGradientClosest(rayPosition.X, rayPosition.Y, rayPosition.Z);
+                    var magnitude = getGradientBySelectedMethod(rayPosition.X, rayPosition.Y, rayPosition.Z);
 
                     // It turns out that the luminosiry when compositing when using the gradient is highly dependent on the step size.
                     opacityAtThisVoxel = opacityAtThisVoxel * (float)(1 - 1 / Math.Log(Math.E + magnitude));
@@ -331,10 +316,12 @@ namespace VolViz.Logic
             if (RenderConfiguration.UseTrilinearInterpolation)
             {
                 getVoxelBySelectedMethod = Volume.GetVoxelTrilinear;
+                getGradientBySelectedMethod = Volume.GetGradientTrilinear;
             }
             else
             {
                 getVoxelBySelectedMethod = Volume.GetVoxelClosest;
+                getGradientBySelectedMethod = Volume.GetGradientTrilinear;
             }
 
             switch (RenderConfiguration.RenderingMode)

@@ -47,111 +47,24 @@ namespace VolViz.Data
 
         public float GetVoxelClosest(float x, float y, float z)
         {
-            int xVal = (int)Math.Floor(x + 0.5);
-            int yVal = (int)Math.Floor(y + 0.5);
-            int zVal = (int)Math.Floor(z + 0.5);
-
-            // Anything outside the volume has zero intensity
-            if (xVal < 0 || yVal < 0 || zVal < 0 ||
-                xVal >= XSize || yVal >= YSize || zVal >= ZSize)
-            {
-                return 0;
-            }
-
-            return Contents[xVal, yVal, zVal];
+            return GetClosestElement(x, y, z, Contents);
         }
         
         public float GetVoxelTrilinear(float x, float y, float z)
         {
-            // Define corner values for interpolation.
-            float p000 = GetVoxelClosest((int)Floor(x), (int)Floor(y), (int)Floor(z));
-            float p100 = GetVoxelClosest((int)Ceil(x), (int)Floor(y), (int)Floor(z));
-            float p101 = GetVoxelClosest((int)Ceil(x), (int)Floor(y), (int)Ceil(z));
-            float p001 = GetVoxelClosest((int)Floor(x), (int)Floor(y), (int)Ceil(z));
-
-            float p010 = GetVoxelClosest((int)Floor(x), (int)Ceil(y), (int)Floor(z));
-            float p110 = GetVoxelClosest((int)Ceil(x), (int)Ceil(y), (int)Floor(z));
-            float p111 = GetVoxelClosest((int)Ceil(x), (int)Ceil(y), (int)Ceil(z));
-            float p011 = GetVoxelClosest((int)Floor(x), (int)Ceil(y), (int)Ceil(z));
-
-            // Trilinearly interpolate.
-            // See http://en.wikipedia.org/wiki/Trilinear_interpolation#Method
-
-            float xd = x - (int)Floor(x);
-            float yd = y - (int)Floor(y);
-            float zd = z - (int)Floor(z);
-
-            float c00 = p000 * (1 - xd) + p100 * xd;
-            float c10 = p010 * (1 - xd) + p110 * xd;
-            float c01 = p001 * (1 - xd) + p101 * xd;
-            float c11 = p011 * (1 - xd) + p111 * xd;
-
-            float c0 = c00 * (1 - yd) + c10 * yd;
-            float c1 = c01 * (1 - yd) + c11 * yd;
-
-            float c = c0 * (1 - zd) + c1 * zd;
-
-            return c;
+            return InterpolateTrilinear(x, y, z, Contents);
         }
 
-        private double Floor(float x) => Math.Floor(x);
-        private double Ceil(float x) => Math.Ceiling(x);
-        private float GetVoxel(float x, float y, float z) => GetVoxelClosest(x, y, z);
-
-        // TODO: Closest & trilinear methods can be profitably refactored to use much less code.
         public float GetGradientClosest(float x, float y, float z)
         {
-            int xVal = (int)Math.Floor(x + 0.5);
-            int yVal = (int)Math.Floor(y + 0.5);
-            int zVal = (int)Math.Floor(z + 0.5);
-
-            // Anything outside the volume has zero intensity
-            if (xVal < 0 || yVal < 0 || zVal < 0 ||
-                xVal >= XSize || yVal >= YSize || zVal >= ZSize)
-            {
-                return 0;
-            }
-
-            return GradientMagnitudes[xVal, yVal, zVal];
+            return GetClosestElement(x, y, z, GradientMagnitudes);
         }
 
-        public void CalculateGradients()
+        public float GetGradientTrilinear(float x, float y, float z)
         {
-            Vector3[,,] gradients = new Vector3[XSize, YSize, ZSize];
-            GradientMagnitudes = new float[XSize, YSize, ZSize];
-
-            // Calculate gradients and gradient magnitudes.
-
-            for (int z = 0; z < ZSize; z++)
-            {
-                for (int y = 0; y < YSize; y++)
-                {
-                    for (int x = 0; x < XSize; x++)
-                    {
-                        // Edge or corner voxel, gradient is not defined. Set to null vector
-                        if (x < 0 || y < 0 || z < 0 ||
-                            x >= XSize || y >= YSize || z >= ZSize)
-                        {
-                            gradients[x, y, z] = Vector3.Zero;
-                        }
-                        else
-                        {
-                            // Calculate gradient using central differences approximation. Can use Sobel 3D
-                            // or Zucker-Hummel if this is not sufficient.
-
-                            float xDifference = (GetVoxel(x + 1, y, z) - GetVoxel(x - 1, y, z)) * 0.5f;
-                            float yDifference = (GetVoxel(x, y + 1, z) - GetVoxel(x, y - 1, z)) * 0.5f;
-                            float zDifference = (GetVoxel(x, y, z + 1) - GetVoxel(x, y, z - 1)) * 0.5f;
-                            
-                            gradients[x,y,z] = new Vector3(xDifference, yDifference, zDifference);
-                        }
-
-                        GradientMagnitudes[x, y, z] = Vector3.Distance(Vector3.Zero, gradients[x, y, z]);
-                    }
-                }
-            }
+            return InterpolateTrilinear(x, y, z, GradientMagnitudes);
         }
-
+        
         public static Volume LoadFromDatFile(string filename)
         {
             // Note: These .dat files consist of little-endian 16-bit integers. Consider your system if it's exotic.
@@ -231,5 +144,93 @@ namespace VolViz.Data
 
             return result;
         }
+
+        private void CalculateGradients()
+        {
+            Vector3[,,] gradients = new Vector3[XSize, YSize, ZSize];
+            GradientMagnitudes = new float[XSize, YSize, ZSize];
+
+            // Calculate gradients and gradient magnitudes.
+
+            for (int z = 0; z < ZSize; z++)
+            {
+                for (int y = 0; y < YSize; y++)
+                {
+                    for (int x = 0; x < XSize; x++)
+                    {
+                        // Edge or corner voxel, gradient is not defined. Set to null vector
+                        if (x < 0 || y < 0 || z < 0 ||
+                            x >= XSize || y >= YSize || z >= ZSize)
+                        {
+                            gradients[x, y, z] = Vector3.Zero;
+                        }
+                        else
+                        {
+                            // Calculate gradient using central differences approximation. Can use Sobel 3D
+                            // or Zucker-Hummel if this is not sufficient.
+
+                            float xDifference = (GetVoxel(x + 1, y, z) - GetVoxel(x - 1, y, z)) * 0.5f;
+                            float yDifference = (GetVoxel(x, y + 1, z) - GetVoxel(x, y - 1, z)) * 0.5f;
+                            float zDifference = (GetVoxel(x, y, z + 1) - GetVoxel(x, y, z - 1)) * 0.5f;
+
+                            gradients[x, y, z] = new Vector3(xDifference, yDifference, zDifference);
+                        }
+
+                        GradientMagnitudes[x, y, z] = Vector3.Distance(Vector3.Zero, gradients[x, y, z]);
+                    }
+                }
+            }
+        }
+
+        private float GetClosestElement(float x, float y, float z, float[,,] volume)
+        {
+            int xVal = (int)Math.Floor(x + 0.5);
+            int yVal = (int)Math.Floor(y + 0.5);
+            int zVal = (int)Math.Floor(z + 0.5);
+
+            // Anything outside the volume has zero intensity
+            if (xVal < 0 || yVal < 0 || zVal < 0 ||
+                xVal >= XSize || yVal >= YSize || zVal >= ZSize)
+            {
+                return 0;
+            }
+
+            return volume[xVal, yVal, zVal];
+        }
+
+        private float InterpolateTrilinear(float x, float y, float z, float[,,] volume)
+        {
+            // Define corner values for interpolation.
+            float p000 = GetClosestElement((int)Floor(x), (int)Floor(y), (int)Floor(z), volume);
+            float p100 = GetClosestElement((int)Ceil(x), (int)Floor(y), (int)Floor(z), volume);
+            float p101 = GetClosestElement((int)Ceil(x), (int)Floor(y), (int)Ceil(z), volume);
+            float p001 = GetClosestElement((int)Floor(x), (int)Floor(y), (int)Ceil(z), volume);
+
+            float p010 = GetClosestElement((int)Floor(x), (int)Ceil(y), (int)Floor(z), volume);
+            float p110 = GetClosestElement((int)Ceil(x), (int)Ceil(y), (int)Floor(z), volume);
+            float p111 = GetClosestElement((int)Ceil(x), (int)Ceil(y), (int)Ceil(z), volume);
+            float p011 = GetClosestElement((int)Floor(x), (int)Ceil(y), (int)Ceil(z), volume);
+
+            // See http://en.wikipedia.org/wiki/Trilinear_interpolation#Method///////
+            float xd = x - (int)Floor(x);
+            float yd = y - (int)Floor(y);
+            float zd = z - (int)Floor(z);
+
+            float c00 = p000 * (1 - xd) + p100 * xd;
+            float c10 = p010 * (1 - xd) + p110 * xd;
+            float c01 = p001 * (1 - xd) + p101 * xd;
+            float c11 = p011 * (1 - xd) + p111 * xd;
+
+            float c0 = c00 * (1 - yd) + c10 * yd;
+            float c1 = c01 * (1 - yd) + c11 * yd;
+
+            float c = c0 * (1 - zd) + c1 * zd;
+
+            return c;
+        }
+
+        private double Floor(float x) => Math.Floor(x);
+        private double Ceil(float x) => Math.Ceiling(x);
+        private float GetVoxel(float x, float y, float z) => GetVoxelClosest(x, y, z);
     }
 }
