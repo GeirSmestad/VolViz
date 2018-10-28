@@ -103,17 +103,18 @@ namespace VolViz.Logic
 
                 if (voxelValue > threshold)
                 {
-                    return Color.FromArgb(
-                        (int)(voxelValue * 255),
-                        (int)(voxelValue * 255),
-                        (int)(voxelValue * 255));
+                    Vector3 color = GetColorOfIntensity(voxelValue);
+
+                    return ZeroOneVectorToColor(color);
                 }
 
                 rayPosition += projectionDirection * RenderConfiguration.StepSize;
                 rayLength += RenderConfiguration.StepSize;
             }
 
-            return Color.FromArgb(0, 0, 0);
+            Vector3 zeroColor = GetColorOfIntensity(0);
+
+            return ZeroOneVectorToColor(zeroColor);
         }
 
         /// <summary>
@@ -191,10 +192,7 @@ namespace VolViz.Logic
                 rayLength += RenderConfiguration.StepSize;
             }
 
-            return Color.FromArgb(
-                (int)(outputColor.X*255), 
-                (int)(outputColor.Y*255), 
-                (int)(outputColor.Z*255));
+            return ZeroOneVectorToColor(outputColor);
         }
         
         /// <summary>
@@ -253,13 +251,11 @@ namespace VolViz.Logic
                 rayLength += RenderConfiguration.StepSize;
             }
 
-            return Color.FromArgb(
-                (int)(maximumIntensity * 255),
-                (int)(maximumIntensity * 255),
-                (int)(maximumIntensity * 255));
+            Vector3 color = GetColorOfIntensity(maximumIntensity);
+
+            return ZeroOneVectorToColor(color);
         }
-
-
+        
         /// <summary>
         /// Cast a ray from the viewport, through the volume.
         /// 
@@ -302,12 +298,11 @@ namespace VolViz.Logic
                 rayLength += RenderConfiguration.StepSize;
             }
 
-            float averageAbsorption = totalAbsorption / numberOfSamples; 
+            float averageAbsorption = totalAbsorption / numberOfSamples;
 
-            return Color.FromArgb(
-                (int)(averageAbsorption * 255),
-                (int)(averageAbsorption * 255),
-                (int)(averageAbsorption * 255));
+            Vector3 color = GetColorOfIntensity(averageAbsorption);
+
+            return ZeroOneVectorToColor(color);
         }
 
         private void SetLocalRenderingParameters()
@@ -340,6 +335,14 @@ namespace VolViz.Logic
                 default:
                     throw new InvalidOperationException("No rendering algorithm specified");
             }
+        }
+
+        private Color ZeroOneVectorToColor(Vector3 vector)
+        {
+            return Color.FromArgb(
+                (int)(vector.X * 255),
+                (int)(vector.Y * 255),
+                (int)(vector.Z * 255));
         }
     }
 }
