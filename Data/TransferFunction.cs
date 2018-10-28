@@ -21,7 +21,7 @@ namespace VolViz.Data
             Nodes = new List<TfNode>()
             {
                 new TfNode(0, 0, new Vector3(0, 0, 0)),
-                new TfNode(1, 1, new Vector3(1, 1, 1))
+                new TfNode(1, 1, new Vector3(255, 255, 255))
             };
 
             RecalculateLookupTables();
@@ -31,10 +31,48 @@ namespace VolViz.Data
         {
             if (useLookupTable)
             {
-                return _colorLookupTable[(float)Math.Round(voxelValue, 2)]; // todo: potentially null/empty
+                return _colorLookupTable[(float)Math.Round(voxelValue, 2)];
             }
 
-            return new Vector3(voxelValue, voxelValue, voxelValue);
+            // TODO: Extract node localization to helper method
+            TfNode lowerNode = null;
+            TfNode higherNode = null;
+
+            TfNode previousNode = Nodes[0];
+
+            // Could use binary search or other strategy for efficiency if required
+            for (int i = 1; i < Nodes.Count; i++)
+            {
+                var currentNode = Nodes[i];
+
+                if (previousNode.InputValue <= voxelValue && currentNode.InputValue >= voxelValue)
+                {
+                    lowerNode = previousNode;
+                    higherNode = currentNode;
+                    break;
+                }
+
+                previousNode = currentNode;
+            }
+
+            if (higherNode.InputValue == lowerNode.InputValue)
+            {
+                return higherNode.OutputColor;
+            }
+
+            float red = LinearInterpolate(voxelValue,
+                lowerNode.InputValue, lowerNode.OutputColor.X,
+                higherNode.InputValue, higherNode.OutputColor.X);
+
+            float green = LinearInterpolate(voxelValue,
+                lowerNode.InputValue, lowerNode.OutputColor.Y,
+                higherNode.InputValue, higherNode.OutputColor.Y);
+
+            float blue = LinearInterpolate(voxelValue,
+                lowerNode.InputValue, lowerNode.OutputColor.Z,
+                higherNode.InputValue, higherNode.OutputColor.Z);
+            
+            return new Vector3(red/255f, green/255f, blue/255f);
         }
 
         public float GetOpacityOfIntensity(float voxelValue, bool useLookupTable = true)
@@ -66,13 +104,12 @@ namespace VolViz.Data
             
             if (higherNode.InputValue == lowerNode.InputValue)
             {
-                return higherNode.InputValue;
+                return higherNode.OutputOpacity;
             }
-
-            // TODO: This can be extracted to a "linearInterpolation" function
-            // y = y0 + (x - x0) * (y1 - y0) / (x1 - x0)
-            float opacity = lowerNode.OutputOpacity + (voxelValue - lowerNode.InputValue) *
-                (higherNode.OutputOpacity - lowerNode.OutputOpacity) / (higherNode.InputValue - lowerNode.InputValue);
+            
+            float opacity = LinearInterpolate(voxelValue,
+                lowerNode.InputValue, lowerNode.OutputOpacity,
+                higherNode.InputValue, higherNode.OutputOpacity);
             
             return opacity;
 
@@ -113,6 +150,11 @@ namespace VolViz.Data
                 }
                 return 0;
             });
+        }
+        
+        private float LinearInterpolate(float x, float x0, float y0, float x1, float y1)
+        {
+            return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
         }
     }
 }

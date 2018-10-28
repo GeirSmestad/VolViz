@@ -8,7 +8,6 @@ The front-end is written in Windows Forms, until I come to my senses. (Likely ne
 
 ## To do:
 
-* Transfer function (colors)  
 * Transfer function editor (colors & UI improvements)  
 * Histogram in TF editor  
 * Color/opacity band in TF editor that shows the current TF parameters  
@@ -19,6 +18,7 @@ The front-end is written in Windows Forms, until I come to my senses. (Likely ne
 * Exponential refinement after view has been selected & not interacted with for a bit  
 * CPU rendering: Performance improvements. Memoization table for voxel lookup? Deferred gradient calculation?
 * UI to change contribution of gradients to transfer function
+* HSV interpolation rather than RGB interpolation
 
 * Refactoring rendering algorithms to separate files  
 * Refactoring parts of long files into separate classes

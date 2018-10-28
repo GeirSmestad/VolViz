@@ -18,7 +18,7 @@ namespace VolViz
         private VolumeRenderer _volumeRenderer;
         private TransferFunction _transferFunction;
         private Action _transferFunctionUpdated;
-        
+
         private double _hue;
         private double _saturation;
         private double _value;
@@ -32,13 +32,14 @@ namespace VolViz
             _transferFunctionUpdated = transferFunctionUpdated;
 
             _hue = 180;
-            _saturation = _value = 50;
+            _saturation = _value = 75;
 
             InitializeComponent();
 
             RedrawColorDesigner();
             RedrawValuePicker();
             DrawHueSaturationPicker();
+            UpdateSelectedColor();
         }
 
         private void buttonSave_Click(object sender, EventArgs e)
@@ -66,6 +67,8 @@ namespace VolViz
                 if (_indexOfHilightedNode != -1)
                 {
                     _indexOfSelectedNode = _indexOfHilightedNode;
+                    _transferFunction.Nodes[_indexOfSelectedNode].OutputColor =
+                        ColorToVector(_selectedColor);
                 }
                 else
                 {
@@ -81,7 +84,7 @@ namespace VolViz
                     _transferFunction.AddNode(
                         inputValue,
                         outputOpacity, 
-                        new Vector3(1, 1, 1));
+                        ColorToVector(_selectedColor));
                 }
             }
 
@@ -198,19 +201,22 @@ namespace VolViz
                 for (int i = 0; i < _transferFunction.Nodes.Count; i++)
                 {
                     var currentNode = _transferFunction.Nodes[i];
-                    var brush = Brushes.LightBlue;
-
-                    if (_indexOfHilightedNode == i)
-                    {
-                        brush = Brushes.Yellow;
-                    }
-
+                    var brush = new SolidBrush(VectorToColor(currentNode.OutputColor));
+                    
                     g.FillEllipse(brush,
                         width * currentNode.InputValue - nodeSize / 2f,
                         invCartesianY(height * currentNode.OutputOpacity, height) - nodeSize / 2f,
                         nodeSize,
-                        nodeSize
-                        );
+                        nodeSize);
+
+                    if (_indexOfHilightedNode == i)
+                    {
+                        g.DrawEllipse(new Pen(Color.Yellow, 2),
+                            width * currentNode.InputValue - nodeSize / 2f,
+                            invCartesianY(height * currentNode.OutputOpacity, height) - nodeSize / 2f,
+                            nodeSize,
+                            nodeSize);
+                    }
                 }
             }
 
@@ -270,8 +276,9 @@ namespace VolViz
             }
         }
 
-        private void RedrawSelectedColorPanel()
+        private void UpdateSelectedColor()
         {
+            _selectedColor = ColorHSVConverter.ColorFromHSV(_hue, _saturation, _value);
             panelSelectedColor.BackColor = _selectedColor;
         }
 
@@ -297,8 +304,7 @@ namespace VolViz
                 _hue = hue;
                 _saturation = saturation;
 
-                _selectedColor = ColorHSVConverter.ColorFromHSV(_hue, _saturation, _value);
-                RedrawSelectedColorPanel();
+                UpdateSelectedColor();
                 RedrawValuePicker();
             }
         }
@@ -324,10 +330,26 @@ namespace VolViz
                 if (_value < 0) { _value = 0; }
                 if (_value > 100) { _value = 100; }
 
-                _selectedColor = ColorHSVConverter.ColorFromHSV(_hue, _saturation, _value);
-                RedrawSelectedColorPanel();
+                UpdateSelectedColor();
                 RedrawValuePicker();
+                RedrawColorDesigner();
             }
+        }
+
+        public static Vector3 ColorToVector(Color colorToConvert)
+        {
+            return new Vector3(
+                colorToConvert.R,
+                colorToConvert.G,
+                colorToConvert.B);
+        }
+
+        public static Color VectorToColor(Vector3 vectorToConvert)
+        {
+            return Color.FromArgb(
+                (int)vectorToConvert.X,
+                (int)vectorToConvert.Y,
+                (int)vectorToConvert.Z);
         }
     }
 }

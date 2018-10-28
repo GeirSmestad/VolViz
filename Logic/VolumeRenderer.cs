@@ -202,8 +202,7 @@ namespace VolViz.Logic
         /// </summary>
         private Vector3 GetColorOfIntensity(float voxelValue)
         {
-            //return TransferFunction.GetColorOfIntensity(voxelValue);
-            return new Vector3(voxelValue, voxelValue, voxelValue);
+            return TransferFunction.GetColorOfIntensity(voxelValue);
         }
         
         private float GetOpacityOfIntensity(float voxelValue)
