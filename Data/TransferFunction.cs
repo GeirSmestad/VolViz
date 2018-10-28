@@ -34,26 +34,8 @@ namespace VolViz.Data
                 return _colorLookupTable[(float)Math.Round(voxelValue, 2)];
             }
 
-            // TODO: Extract node localization to helper method
-            TfNode lowerNode = null;
-            TfNode higherNode = null;
-
-            TfNode previousNode = Nodes[0];
-
-            // Could use binary search or other strategy for efficiency if required
-            for (int i = 1; i < Nodes.Count; i++)
-            {
-                var currentNode = Nodes[i];
-
-                if (previousNode.InputValue <= voxelValue && currentNode.InputValue >= voxelValue)
-                {
-                    lowerNode = previousNode;
-                    higherNode = currentNode;
-                    break;
-                }
-
-                previousNode = currentNode;
-            }
+            TfNode lowerNode, higherNode;
+            GetNeighboringNodes(voxelValue, out lowerNode, out higherNode);
 
             if (higherNode.InputValue == lowerNode.InputValue)
             {
@@ -74,34 +56,17 @@ namespace VolViz.Data
             
             return new Vector3(red/255f, green/255f, blue/255f);
         }
-
+        
         public float GetOpacityOfIntensity(float voxelValue, bool useLookupTable = true)
         {
             if (useLookupTable)
             {
                 return _opacityLookupTable[(float)Math.Round(voxelValue, 2)];
             }
-            
-            TfNode lowerNode = null;
-            TfNode higherNode = null;
 
-            TfNode previousNode = Nodes[0];
+            TfNode lowerNode, higherNode;
+            GetNeighboringNodes(voxelValue, out lowerNode, out higherNode);
 
-            // Could use binary search or other strategy for efficiency if required
-            for (int i = 1; i < Nodes.Count; i++)
-            {
-                var currentNode = Nodes[i];
-                
-                if (previousNode.InputValue <= voxelValue && currentNode.InputValue >= voxelValue)
-                {
-                    lowerNode = previousNode;
-                    higherNode = currentNode;
-                    break;
-                }
-
-                previousNode = currentNode;
-            }
-            
             if (higherNode.InputValue == lowerNode.InputValue)
             {
                 return higherNode.OutputOpacity;
@@ -151,7 +116,29 @@ namespace VolViz.Data
                 return 0;
             });
         }
-        
+
+        private void GetNeighboringNodes(float voxelValue, out TfNode lowerNode, out TfNode higherNode)
+        {
+            TfNode previousNode = Nodes[0];
+
+            // Could use binary search or other strategy for efficiency if required
+            for (int i = 1; i < Nodes.Count; i++)
+            {
+                var currentNode = Nodes[i];
+
+                if (previousNode.InputValue <= voxelValue && currentNode.InputValue >= voxelValue)
+                {
+                    lowerNode = previousNode;
+                    higherNode = currentNode;
+                    return;
+                }
+
+                previousNode = currentNode;
+            }
+
+            throw new InvalidOperationException("You have asked for a point that is not between two TF nodes.");
+        }
+
         private float LinearInterpolate(float x, float x0, float y0, float x1, float y1)
         {
             return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
