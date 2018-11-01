@@ -34,6 +34,7 @@
             this.buttonLoadTestVolume = new System.Windows.Forms.Button();
             this.labelViewportState = new System.Windows.Forms.Label();
             this.buttonEditRenderConfig = new System.Windows.Forms.Button();
+            this.buttonEnableD3D = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.canvas)).BeginInit();
             this.SuspendLayout();
             // 
@@ -99,11 +100,22 @@
             this.buttonEditRenderConfig.UseVisualStyleBackColor = true;
             this.buttonEditRenderConfig.Click += new System.EventHandler(this.buttonEditRenderConfig_Click);
             // 
+            // buttonEnableD3D
+            // 
+            this.buttonEnableD3D.Location = new System.Drawing.Point(451, 587);
+            this.buttonEnableD3D.Name = "buttonEnableD3D";
+            this.buttonEnableD3D.Size = new System.Drawing.Size(116, 23);
+            this.buttonEnableD3D.TabIndex = 7;
+            this.buttonEnableD3D.Text = "Direct3D view";
+            this.buttonEnableD3D.UseVisualStyleBackColor = true;
+            this.buttonEnableD3D.Click += new System.EventHandler(this.buttonEnableD3D_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(623, 699);
+            this.Controls.Add(this.buttonEnableD3D);
             this.Controls.Add(this.buttonEditRenderConfig);
             this.Controls.Add(this.labelViewportState);
             this.Controls.Add(this.buttonLoadTestVolume);
@@ -127,6 +139,7 @@
         private System.Windows.Forms.Button buttonLoadTestVolume;
         private System.Windows.Forms.Label labelViewportState;
         private System.Windows.Forms.Button buttonEditRenderConfig;
+        private System.Windows.Forms.Button buttonEnableD3D;
     }
 }
 

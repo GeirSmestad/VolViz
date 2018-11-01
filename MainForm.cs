@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpDX.Windows;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VolViz.Data;
+using VolViz.DirectX;
 using VolViz.Logic;
 
 namespace VolViz
@@ -235,7 +237,35 @@ namespace VolViz
 
             _configurationEditor.SetDesktopLocation(
                 parentLocation.X + parentSize.Width,
-                parentLocation.Y + parentSize.Height - _configurationEditor.Height);
+                parentLocation.Y + 400);
+        }
+        
+        private void buttonEnableD3D_Click(object sender, EventArgs e)
+        {
+            var form = new RenderForm("Hello Texture")
+            {
+                Width = 640,
+                Height = 400
+            };
+            form.Show();
+
+            form.Location = new Point(
+                this.Location.X,
+                this.Location.Y + this.Height);
+
+            using (var app = new HelloTexture())
+            {
+                app.Initialize(form);
+
+                using (var loop = new RenderLoop(form))
+                {
+                    while (loop.NextFrame())
+                    {
+                        app.Update();
+                        app.Render();
+                    }
+                }
+            }
         }
     }
 }

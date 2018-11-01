@@ -6,6 +6,8 @@ It is written in C#/.NET, and loosely based on a course I took during my Master 
 
 The front-end is written in Windows Forms, until I come to my senses. (Likely never - WinForms is excellent for prototyping lightweight Windows GUI applications, sorry to say). 
 
+Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX-Samples.
+
 ## To do:
 
 * Histogram in TF editor  
