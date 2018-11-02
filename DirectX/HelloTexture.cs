@@ -193,18 +193,20 @@ namespace VolViz.DirectX
             // Create the command list.
             commandList = device.CreateCommandList(CommandListType.Direct, commandAllocator, pipelineState);
 
-            // Create the vertex buffer.
-            float aspectRatio = viewport.Width / viewport.Height;
-
-            // Define the geometry for a triangle.
-            var triangleVertices = new[]
+            // Define the geometry for a square consisting of two triangles.
+            var squareVertexes = new[]
             {
-                new Vertex() { Position = new Vector3(0.0f, 0.25f * aspectRatio, 0.0f ),  TexCoord = new Vector2(0.5f, 0.0f) },
-                new Vertex() { Position = new Vector3(0.25f, -0.25f * aspectRatio, 0.0f), TexCoord = new Vector2(1.0f, 1.0f) },
-                new Vertex() { Position = new Vector3(-0.25f, -0.25f * aspectRatio, 0.0f),TexCoord = new Vector2(0.0f, 1.0f) },
+                new Vertex() { Position = new Vector3(-1.0f, 1.0f , 0.0f),  TexCoord = new Vector2(0.0f, 0.0f) },
+                new Vertex() { Position = new Vector3(1.0f, 1.0f, 0.0f), TexCoord = new Vector2(1.0f, 0.0f) },
+                new Vertex() { Position = new Vector3(-1.0f, -1.0f, 0.0f),TexCoord = new Vector2(0.0f, 1.0f) },
+
+                new Vertex() { Position = new Vector3(1.0f, 1.0f , 0.0f),  TexCoord = new Vector2(1.0f, 0.0f) },
+                new Vertex() { Position = new Vector3(1.0f, -1.0f, 0.0f), TexCoord = new Vector2(1.0f, 1.0f) },
+                new Vertex() { Position = new Vector3(-1.0f, -1.0f, 0.0f),TexCoord = new Vector2(0.0f, 1.0f) },
             };
 
-            int vertexBufferSize = Utilities.SizeOf(triangleVertices);
+            // Create the vertex buffer.
+            int vertexBufferSize = Utilities.SizeOf(squareVertexes);
 
             // Note: using upload heaps to transfer static data like vert buffers is not 
             // recommended. Every time the GPU needs it, the upload heap will be marshalled 
@@ -214,7 +216,7 @@ namespace VolViz.DirectX
 
             // Copy the triangle data to the vertex buffer.
             var pVertexDataBegin = vertexBuffer.Map(0);
-            Utilities.Write(pVertexDataBegin, triangleVertices, 0, triangleVertices.Length);
+            Utilities.Write(pVertexDataBegin, squareVertexes, 0, squareVertexes.Length);
             vertexBuffer.Unmap(0);
 
             // Initialize the vertex buffer view.
@@ -342,7 +344,7 @@ namespace VolViz.DirectX
 
             commandList.PrimitiveTopology = SharpDX.Direct3D.PrimitiveTopology.TriangleList;
             commandList.SetVertexBuffer(0, vertexBufferView);
-            commandList.DrawInstanced(3, 1, 0, 0);
+            commandList.DrawInstanced(6, 1, 0, 0);
 
             // Indicate that the back buffer will now be used to present.
             commandList.ResourceBarrierTransition(renderTargets[frameIndex], ResourceStates.RenderTarget, ResourceStates.Present);
