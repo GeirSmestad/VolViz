@@ -253,7 +253,7 @@ namespace VolViz
                 this.Location.X,
                 this.Location.Y + this.Height);
 
-            using (var app = new HelloTexture())
+            using (var app = new HelloTexture(volume, renderer))
             {
                 app.Initialize(form);
 

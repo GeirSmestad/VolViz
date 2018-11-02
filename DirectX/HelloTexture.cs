@@ -8,6 +8,8 @@ using System.Threading;
 
 namespace VolViz.DirectX
 {
+    using Data;
+    using Logic;
     using SharpDX;
     using SharpDX.Direct3D12;
     using SharpDX.Windows;
@@ -17,6 +19,15 @@ namespace VolViz.DirectX
 
     class HelloTexture : IDisposable
     {
+
+        Volume volume;
+        VolumeRenderer renderer;
+
+        public HelloTexture(Volume volume, VolumeRenderer renderer)
+        {
+            this.volume = volume;
+            this.renderer = renderer;
+        }
 
         /// <summary>
         /// Initialise pipeline and assets
@@ -268,32 +279,21 @@ namespace VolViz.DirectX
         byte[] GenerateTextureData()
         {
             int rowPitch = TextureWidth * TexturePixelSize;
-            int cellPitch = rowPitch >> 3;       // The width of a cell in the checkboard texture.
-            int cellHeight = TextureWidth >> 3;  // The height of a cell in the checkerboard texture.
             int textureSize = rowPitch * TextureHeight;
+
             byte[] data = new byte[textureSize];
 
             for (int n = 0; n < textureSize; n += TexturePixelSize)
             {
-                int x = n % rowPitch;
-                int y = n / rowPitch;
-                int i = x / cellPitch;
-                int j = y / cellHeight;
+                int x = (n/4) % TextureWidth;
+                int y = (n/4) / TextureWidth;
 
-                if (i % 2 == j % 2)
-                {
-                    data[n] = 0x00;     // R
-                    data[n + 1] = 0x00; // G
-                    data[n + 2] = 0x00; // B
-                    data[n + 3] = 0xff; // A
-                }
-                else
-                {
-                    data[n] = 0xff;     // R
-                    data[n + 1] = 0xff; // G
-                    data[n + 2] = 0xff; // B
-                    data[n + 3] = 0xff; // A
-                }
+                var voxelValue = volume.Contents[x, y, 17];
+
+                data[n] = (byte)(voxelValue * 255);
+                data[n + 1] = (byte)(voxelValue * 255);
+                data[n + 2] = (byte)(voxelValue * 255);
+                data[n + 3] = 0xff;
             }
 
             return data;
@@ -423,8 +423,9 @@ namespace VolViz.DirectX
             public Vector2 TexCoord;
         };
 
-        const int TextureWidth = 256;
-        const int TextureHeight = 256;
+        // TODO: Set dynamically
+        int TextureWidth = 120;
+        int TextureHeight = 120;
         const int TexturePixelSize = 4;	// The number of bytes used to represent a pixel in the texture.
 
 
