@@ -4,7 +4,7 @@
 	float2 uv : TEXCOORD;
 };
 
-Texture2D g_texture : register(t0);
+Texture3D g_texture : register(t0);
 SamplerState g_sampler : register(s0);
 
 PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
@@ -19,5 +19,6 @@ PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-	return g_texture.Sample(g_sampler, input.uv);
+	float3 positionToSample = { input.uv.x, input.uv.y, 0.5};
+	return g_texture.Sample(g_sampler, positionToSample);
 }

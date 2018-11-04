@@ -226,22 +226,32 @@ namespace VolViz.DirectX
             vertexBufferView.SizeInBytes = vertexBufferSize;
 
             // Create the texture.
-            // Describe and create a Texture2D.
-            var textureDesc = ResourceDescription.Texture2D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight);
-            texture = device.CreateCommittedResource(new HeapProperties(HeapType.Default), HeapFlags.None, textureDesc, ResourceStates.CopyDestination);
-
+            // Describe and create a Texture3D.
+            var textureDesc = ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight, TextureDepth, 1);
+            texture = device.CreateCommittedResource(new HeapProperties(
+                HeapType.Default), 
+                HeapFlags.None, 
+                textureDesc, 
+                ResourceStates.CopyDestination);
+            
             long uploadBufferSize = GetRequiredIntermediateSize(this.texture, 0, 1);
 
             // Create the GPU upload buffer.
-            var textureUploadHeap = device.CreateCommittedResource(new HeapProperties(CpuPageProperty.WriteBack, MemoryPool.L0), HeapFlags.None, ResourceDescription.Texture2D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight), ResourceStates.GenericRead);
+            var textureUploadHeap = device.CreateCommittedResource(new HeapProperties(
+                CpuPageProperty.WriteBack, 
+                MemoryPool.L0), HeapFlags.None, 
+                ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight, TextureDepth, 1), 
+                ResourceStates.GenericRead);
 
             // Copy data to the intermediate upload heap and then schedule a copy 
-            // from the upload heap to the Texture2D.
+            // from the upload heap to the Texture3D.
             byte[] textureData = GenerateTextureData();
 
             var handle = GCHandle.Alloc(textureData, GCHandleType.Pinned);
             var ptr = Marshal.UnsafeAddrOfPinnedArrayElement(textureData, 0);
-            textureUploadHeap.WriteToSubresource(0, null, ptr, TexturePixelSize * TextureWidth, textureData.Length);
+
+            textureUploadHeap.WriteToSubresource(0, null, ptr, TexturePixelSize * TextureWidth, TexturePixelSize * TextureWidth * TextureHeight);
+
             handle.Free();
 
             commandList.CopyTextureRegion(new TextureCopyLocation(texture, 0), 0, 0, 0, new TextureCopyLocation(textureUploadHeap, 0), null);
@@ -253,8 +263,8 @@ namespace VolViz.DirectX
             {
                 Shader4ComponentMapping = D3DXUtilities.DefaultComponentMapping(),
                 Format = textureDesc.Format,
-                Dimension = ShaderResourceViewDimension.Texture2D,
-                Texture2D = { MipLevels = 1 },
+                Dimension = ShaderResourceViewDimension.Texture3D,
+                Texture3D = { MipLevels = 1 },
             };
 
             device.CreateShaderResourceView(this.texture, srvDesc, shaderRenderViewHeap.CPUDescriptorHandleForHeapStart);
@@ -281,16 +291,21 @@ namespace VolViz.DirectX
         byte[] GenerateTextureData()
         {
             int rowPitch = TextureWidth * TexturePixelSize;
-            int textureSize = rowPitch * TextureHeight;
+            int layerPitch = rowPitch * TextureHeight;
+
+            int layerSize = TextureWidth * TextureHeight;
+            int textureSize = layerPitch * TextureDepth;
+
 
             byte[] data = new byte[textureSize];
 
             for (int n = 0; n < textureSize; n += TexturePixelSize)
             {
-                int x = (n/4) % TextureWidth;
-                int y = (n/4) / TextureWidth;
+                int x = (n / 4) % TextureWidth;
+                int y = ((n / 4) % layerSize) / TextureWidth;
+                int z = (n / 4) / layerSize;
 
-                var voxelValue = volume.Contents[x, y, 17];
+                var voxelValue = volume.Contents[x, y, z];
 
                 data[n] = (byte)(voxelValue * 255);
                 data[n + 1] = (byte)(voxelValue * 255);
@@ -428,6 +443,8 @@ namespace VolViz.DirectX
         // TODO: Set dynamically
         int TextureWidth = 120;
         int TextureHeight = 120;
+        short TextureDepth = 34;
+
         const int TexturePixelSize = 4;	// The number of bytes used to represent a pixel in the texture.
 
 
