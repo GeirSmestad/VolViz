@@ -23,9 +23,11 @@ namespace VolViz
         private bool rmbDown = false;
         private bool mmbDown = false;
 
-        private Vector2 mousePositionAtLastTick = new Vector2(0,0);
+        private Vector2 mousePositionAtLastTick = new Vector2(0, 0);
         private TransferFunctionEditor _transferFunctionEditor;
         private ConfigurationEditor _configurationEditor;
+
+        private HelloTexture _hardwareRenderer;
 
         public MainForm()
         {
@@ -51,7 +53,7 @@ namespace VolViz
             var parentLocation = this.DesktopLocation;
             var parentSize = this.Size;
             _transferFunctionEditor.SetDesktopLocation(
-                parentLocation.X + parentSize.Width, 
+                parentLocation.X + parentSize.Width,
                 parentLocation.Y);
 
         }
@@ -65,7 +67,7 @@ namespace VolViz
 
             redrawVolumeRender();
         }
-        
+
         private void canvas_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -81,7 +83,7 @@ namespace VolViz
             {
                 mmbDown = true;
             }
-            
+
         }
 
         private void canvas_MouseUp(object sender, MouseEventArgs e)
@@ -146,7 +148,7 @@ namespace VolViz
             mousePositionAtLastTick = new Vector2(e.X, e.Y);
 
             if (renderer != null)
-            { 
+            {
                 labelViewportState.Text = renderer.Viewport.GetStateDescription();
             }
         }
@@ -172,6 +174,12 @@ namespace VolViz
             }
 
             canvas.Refresh();
+
+            if (_hardwareRenderer != null)
+            {
+                _hardwareRenderer.Update();
+                _hardwareRenderer.Render();
+            }
         }
 
         public static Bitmap ResizeImage(Image image, int width, int height)
@@ -207,7 +215,7 @@ namespace VolViz
 
             redrawVolumeRender();
         }
-        
+
         private void transferFunctionUpdated()
         {
             redrawVolumeRender();
@@ -239,7 +247,7 @@ namespace VolViz
                 parentLocation.X + parentSize.Width,
                 parentLocation.Y + 400);
         }
-        
+
         private void buttonEnableD3D_Click(object sender, EventArgs e)
         {
             var form = new RenderForm("Hello Texture")
@@ -253,18 +261,18 @@ namespace VolViz
                 this.Location.X,
                 this.Location.Y + this.Height);
 
-            using (var app = new HelloTexture(volume, renderer))
-            {
-                app.Initialize(form);
+            _hardwareRenderer = new HelloTexture(volume, renderer);
+            _hardwareRenderer.Initialize(form);
 
-                using (var loop = new RenderLoop(form))
+            using (var loop = new RenderLoop(form))
+            {
+                while (loop.NextFrame())
                 {
-                    while (loop.NextFrame())
-                    {
-                        app.Update();
-                        app.Render();
-                    }
+                    _hardwareRenderer.Update();
+                    _hardwareRenderer.Render();
                 }
+
+                _hardwareRenderer.Dispose();
             }
         }
     }

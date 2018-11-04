@@ -33,7 +33,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 {
 	// First-hit rendering algorithm
 	const float fixedStepSize = 0.01;
-	const float threshold = 0;
+	const float threshold = 0.1;
 
 	float rayLength = 0;
 	float cutoffDistance = 2;

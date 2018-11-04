@@ -170,7 +170,7 @@ namespace VolViz.DirectX
                 {
                     new StaticSamplerDescription(ShaderVisibility.Pixel, 0, 0)
                     {
-                        Filter = Filter.MinimumMinMagMipPoint,
+                        Filter = Filter.ComparisonMinLinearMagPointMipLinear,
                         AddressUVW = TextureAddressMode.Border,
                     }
                 });
