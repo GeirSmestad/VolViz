@@ -49,11 +49,8 @@ float4 PSMain(PSInput input) : SV_TARGET
 			return voxelValue;
 		}
 
-		// TODO: Step size was not loaded correctly due to bad alignment of constant buffer.
-		// Switch to using a working, dynamic step size.
-		/*rayPosition += ProjectionDirection * StepSize;*/
-		rayPosition += ProjectionDirection * fixedStepSize;
-		rayLength += fixedStepSize;
+		rayPosition += ProjectionDirection * StepSize;
+		rayLength += StepSize;
 	}
 
 	float4 zeroColor = { 0, 0, 0, 0 };
