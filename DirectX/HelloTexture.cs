@@ -448,6 +448,31 @@ namespace VolViz.DirectX
             {
                 constantBufferData.Offset.X = -offsetBounds;
             }
+
+            constantBufferData.ProjectionDirection.X = renderer.Viewport.ProjectionDirection.X;
+            constantBufferData.ProjectionDirection.Y = renderer.Viewport.ProjectionDirection.Y;
+            constantBufferData.ProjectionDirection.Z = renderer.Viewport.ProjectionDirection.Z;
+
+            constantBufferData.BottomLeft.X = renderer.Viewport.BottomLeft.X;
+            constantBufferData.BottomLeft.Y = renderer.Viewport.BottomLeft.Y;
+            constantBufferData.BottomLeft.Z = renderer.Viewport.BottomLeft.Z;
+
+            constantBufferData.RightSpan.X = renderer.Viewport.RightSpan.X;
+            constantBufferData.RightSpan.Y = renderer.Viewport.RightSpan.Y;
+            constantBufferData.RightSpan.Z = renderer.Viewport.RightSpan.Z;
+
+            constantBufferData.UpSpan.X = renderer.Viewport.UpSpan.X;
+            constantBufferData.UpSpan.Y = renderer.Viewport.UpSpan.Y;
+            constantBufferData.UpSpan.Z = renderer.Viewport.UpSpan.Z;
+
+            constantBufferData.StepSize = 0.01f;
+
+            Vector4 firstRayPosition =
+                constantBufferData.BottomLeft +
+                constantBufferData.RightSpan +
+                constantBufferData.UpSpan +
+                constantBufferData.ProjectionDirection * constantBufferData.Offset.X;
+
             Utilities.Write(constantBufferPointer, ref constantBufferData);
         }
 
@@ -501,6 +526,13 @@ namespace VolViz.DirectX
         struct ConstantBuffer
         {
             public Vector4 Offset;
+
+            public Vector4 ProjectionDirection;
+            public Vector4 BottomLeft;
+            public Vector4 RightSpan;
+            public Vector4 UpSpan;
+
+            public float StepSize;
         };
 
         const int FrameCount = 2;
