@@ -156,7 +156,7 @@ namespace VolViz.DirectX
                             OffsetInDescriptorsFromTableStart = int.MinValue,
                             BaseShaderRegister = 0
                         }),
-                    new RootParameter(ShaderVisibility.Vertex,
+                    new RootParameter(ShaderVisibility.Pixel,
                         new DescriptorRange()
                         {
                             RangeType = DescriptorRangeType.ConstantBufferView,
