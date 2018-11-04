@@ -7,11 +7,16 @@
 Texture3D g_texture : register(t0);
 SamplerState g_sampler : register(s0);
 
+cbuffer ConstantBuffer : register(b0)
+{
+	float4 offset;
+};
+
 PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
 {
 	PSInput result;
 
-	result.position = position;
+	result.position = position + offset;
 	result.uv = uv;
 
 	return result;

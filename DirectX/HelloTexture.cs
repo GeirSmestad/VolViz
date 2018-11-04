@@ -115,6 +115,18 @@ namespace VolViz.DirectX
 
             shaderRenderViewHeap = device.CreateDescriptorHeap(srvHeapDesc);
 
+            // Describe and create a constant buffer view (CBV) descriptor heap.
+            // Flags indicate that this descriptor heap can be bound to the pipeline 
+            // and that descriptors contained in it can be referenced by a root table.
+            var cbvHeapDesc = new DescriptorHeapDescription()
+            {
+                DescriptorCount = 1,
+                Flags = DescriptorHeapFlags.ShaderVisible,
+                Type = DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView
+            };
+
+            constantBufferViewHeap = device.CreateDescriptorHeap(cbvHeapDesc);
+
             rtvDescriptorSize = device.GetDescriptorHandleIncrementSize(DescriptorHeapType.RenderTargetView);
 
             // Create frame resources.
@@ -132,7 +144,7 @@ namespace VolViz.DirectX
         private void LoadAssets()
         {
             // Create the root signature description.
-            var rootSignatureDesc = new RootSignatureDescription(RootSignatureFlags.AllowInputAssemblerInputLayout,
+            var rootSignatureDesc = new RootSignatureDescription(RootSignatureFlags.AllowInputAssemblerInputLayout, 
                 // Root Parameters
                 new[]
                 {
@@ -143,6 +155,14 @@ namespace VolViz.DirectX
                             DescriptorCount = 1,
                             OffsetInDescriptorsFromTableStart = int.MinValue,
                             BaseShaderRegister = 0
+                        }),
+                    new RootParameter(ShaderVisibility.Vertex,
+                        new DescriptorRange()
+                        {
+                            RangeType = DescriptorRangeType.ConstantBufferView,
+                            DescriptorCount = 1,
+                            BaseShaderRegister = 0,
+                            OffsetInDescriptorsFromTableStart = int.MinValue,
                         })
                 },
                 // Samplers
@@ -283,6 +303,22 @@ namespace VolViz.DirectX
             // to record yet. The main loop expects it to be closed, so close it now.
             commandList.Close();
 
+            constantBuffer = device.CreateCommittedResource(new HeapProperties(HeapType.Upload), HeapFlags.None, ResourceDescription.Buffer(1024 * 64), ResourceStates.GenericRead);
+
+            //// Describe and create a constant buffer view.
+            var cbvDesc = new ConstantBufferViewDescription
+            {
+                BufferLocation = constantBuffer.GPUVirtualAddress,
+                SizeInBytes = (Utilities.SizeOf<ConstantBuffer>() + 255) & ~255
+            };
+
+            device.CreateConstantBufferView(cbvDesc, constantBufferViewHeap.CPUDescriptorHandleForHeapStart);
+
+            // Initialize and map the constant buffers. We don't unmap this until the
+            // app closes. Keeping things mapped for the lifetime of the resource is okay.
+            constantBufferPointer = constantBuffer.Map(0);
+            Utilities.Write(constantBufferPointer, ref constantBufferData);
+
             commandQueue.ExecuteCommandList(commandList);
 
             // Create synchronization objects.
@@ -351,8 +387,10 @@ namespace VolViz.DirectX
             commandList.SetGraphicsRootSignature(rootSignature);
 
             commandList.SetDescriptorHeaps(1, new DescriptorHeap[] { shaderRenderViewHeap });
-
             commandList.SetGraphicsRootDescriptorTable(0, shaderRenderViewHeap.GPUDescriptorHandleForHeapStart);
+
+            commandList.SetDescriptorHeaps(1, new DescriptorHeap[] { constantBufferViewHeap });
+            commandList.SetGraphicsRootDescriptorTable(1, constantBufferViewHeap.GPUDescriptorHandleForHeapStart);
 
             commandList.SetViewport(viewport);
             commandList.SetScissorRectangles(scissorRect);
@@ -402,6 +440,15 @@ namespace VolViz.DirectX
 
         public void Update()
         {
+            const float translationSpeed = 0.005f;
+            const float offsetBounds = 1.25f;
+
+            constantBufferData.Offset.X += translationSpeed;
+            if (constantBufferData.Offset.X > offsetBounds)
+            {
+                constantBufferData.Offset.X = -offsetBounds;
+            }
+            Utilities.Write(constantBufferPointer, ref constantBufferData);
         }
 
         public void Render()
@@ -433,9 +480,11 @@ namespace VolViz.DirectX
             rootSignature.Dispose();
             renderTargetViewHeap.Dispose();
             shaderRenderViewHeap.Dispose();
+            constantBufferViewHeap.Dispose();
             pipelineState.Dispose();
             commandList.Dispose();
             vertexBuffer.Dispose();
+            constantBuffer.Dispose();
             texture.Dispose();
             fence.Dispose();
             swapChain.Dispose();
@@ -447,6 +496,11 @@ namespace VolViz.DirectX
             public Vector3 Position;
 
             public Vector2 TexCoord;
+        };
+
+        struct ConstantBuffer
+        {
+            public Vector4 Offset;
         };
 
         const int FrameCount = 2;
@@ -462,6 +516,7 @@ namespace VolViz.DirectX
         private RootSignature rootSignature;
         private DescriptorHeap renderTargetViewHeap;
         private DescriptorHeap shaderRenderViewHeap;
+        private DescriptorHeap constantBufferViewHeap;
         private PipelineState pipelineState;
         private GraphicsCommandList commandList;
         private int rtvDescriptorSize;
@@ -470,6 +525,9 @@ namespace VolViz.DirectX
         Resource vertexBuffer;
         VertexBufferView vertexBufferView;
         Resource texture;
+        Resource constantBuffer;
+        ConstantBuffer constantBufferData;
+        IntPtr constantBufferPointer;
 
         // Synchronization objects.
         private int frameIndex;
