@@ -20,13 +20,23 @@ namespace VolViz.DirectX
     class HelloTexture : IDisposable
     {
 
-        Volume volume;
-        VolumeRenderer renderer;
+        private Volume volume;
+        private VolumeRenderer renderer;
+
+        private int TextureWidth;
+        private int TextureHeight;
+        private short TextureDepth;
+
+        const int TexturePixelSize = 4;	// The number of bytes used to represent a pixel in the texture.
 
         public HelloTexture(Volume volume, VolumeRenderer renderer)
         {
             this.volume = volume;
             this.renderer = renderer;
+
+            TextureWidth = volume.XSize;
+            TextureHeight = volume.YSize;
+            TextureDepth = (short)volume.ZSize;
         }
 
         /// <summary>
@@ -431,22 +441,13 @@ namespace VolViz.DirectX
             swapChain.Dispose();
             device.Dispose();
         }
-
-
+        
         struct Vertex
         {
             public Vector3 Position;
 
             public Vector2 TexCoord;
         };
-
-        // TODO: Set dynamically
-        int TextureWidth = 120;
-        int TextureHeight = 120;
-        short TextureDepth = 34;
-
-        const int TexturePixelSize = 4;	// The number of bytes used to represent a pixel in the texture.
-
 
         const int FrameCount = 2;
 
