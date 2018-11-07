@@ -9,6 +9,7 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VolViz.Data;
@@ -32,6 +33,9 @@ namespace VolViz
         public MainForm()
         {
             InitializeComponent();
+            
+            // Hack: To have some fewer clicks when testing/debugging
+            button2_Click(null, null); 
         }
 
         private Volume volume = null;
@@ -155,12 +159,13 @@ namespace VolViz
 
         private void redrawVolumeRender()
         {
+            
             // TODO: Initialize UI properly so that this hack won't be necessary
             if (renderer == null)
             {
                 return; // Hacky workaround for chicken-and-egg problem w/TF editor
             }
-
+            
             var render = renderer.Render();
             var output = ResizeImage(render, canvas.Width, canvas.Height);
 
