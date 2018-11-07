@@ -170,6 +170,7 @@ namespace VolViz.DirectX
                 {
                     new StaticSamplerDescription(ShaderVisibility.Pixel, 0, 0)
                     {
+                        //Filter = Filter.MinimumMinMagMipPoint,
                         Filter = Filter.ComparisonMinLinearMagPointMipLinear,
                         AddressUVW = TextureAddressMode.Border,
                     }
@@ -465,6 +466,11 @@ namespace VolViz.DirectX
             constantBufferData.UpSpan.Y = renderer.Viewport.UpSpan.Y;
             constantBufferData.UpSpan.Z = renderer.Viewport.UpSpan.Z;
 
+            constantBufferData.DimensionSizeFactors.X = volume.XSize / (float)volume.SizeOfLargestDimension;
+            constantBufferData.DimensionSizeFactors.Y = volume.YSize / (float)volume.SizeOfLargestDimension;
+            constantBufferData.DimensionSizeFactors.Z = volume.ZSize / (float)volume.SizeOfLargestDimension;
+            constantBufferData.DimensionSizeFactors.W = volume.SizeOfLargestDimension;
+            
             constantBufferData.StepSize = 0.01f;
 
             Vector4 firstRayPosition =
@@ -475,7 +481,7 @@ namespace VolViz.DirectX
 
             Utilities.Write(constantBufferPointer, ref constantBufferData);
         }
-
+        
         public void Render()
         {
             // Record all the commands we need to render the scene into the command list.
@@ -532,6 +538,8 @@ namespace VolViz.DirectX
             public Vector4 RightSpan;
             public Vector4 UpSpan;
 
+            // Factors by with to reduce the size of each dimension when sampling (1 for largest dimension)
+            public Vector4 DimensionSizeFactors; 
             public float StepSize;
         };
 

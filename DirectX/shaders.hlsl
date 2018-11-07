@@ -16,6 +16,7 @@ cbuffer ConstantBuffer : register(b0)
 	float4 RightSpan;
 	float4 UpSpan;
 
+	float4 DimensionSizeFactors;
 	float StepSize;
 };
 
@@ -36,13 +37,19 @@ float4 PSMain(PSInput input) : SV_TARGET
 	const float threshold = 0.1;
 
 	float rayLength = 0;
-	float cutoffDistance = 2;
+	float cutoffDistance = 5;
 
 	float4 rayPosition = BottomLeft + RightSpan * input.uv.x + UpSpan * input.uv.y;
 
 	while (rayLength < cutoffDistance)
 	{
-		float4 voxelValue = g_texture.Sample(g_sampler, rayPosition, 0, 1);
+		float4 samplingLocation = float4(
+			rayPosition.x / DimensionSizeFactors.x,
+			rayPosition.y / DimensionSizeFactors.y,
+			rayPosition.z / DimensionSizeFactors.z,
+			0); // Grossly inefficient, but decent proof of concept.
+
+		float4 voxelValue = g_texture.Sample(g_sampler, samplingLocation, 0, 1);
 
 		if (voxelValue.x > threshold)
 		{
