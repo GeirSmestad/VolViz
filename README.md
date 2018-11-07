@@ -47,4 +47,5 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 
 ### Misc
 
-* Fix slightly wonky rotation if convenient  
+* Fix slightly wonky rotation if convenient
+* Some pictures for my GitHub page
