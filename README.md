@@ -2,7 +2,7 @@
 
 This is a demonstration of (3D) volume rendering of volumetric data, e.g. CT or MRI datasets. 
 
-It is written in C#/.NET, and loosely based on a course I took during my Master of Computer Science degree (Visualization group at the University of Bergen, Norway). Currently purely CPU-based rendering.
+It is written in C#/.NET, and loosely based on a course I took during my Master of Computer Science degree (Visualization group at the University of Bergen, Norway).
 
 The front-end is written in Windows Forms, until I come to my senses. (Likely never - WinForms is excellent for prototyping lightweight Windows GUI applications, sorry to say). 
 
