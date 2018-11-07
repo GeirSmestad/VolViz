@@ -10,21 +10,38 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 
 ## To do:
 
+### UI:
+
 * Histogram in TF editor  
 * Color/opacity band in TF editor that shows the current TF parameters  
 * Dragging the *lines* and not just the nodes in TF editor  
 * Temporarily changing TF on mouse-over of histogram, to hilight the points in the volume that have the intensity in question  
-* Phong shading  
-
-* Exponential refinement after view has been selected & not interacted with for a bit  
-* CPU rendering: Performance improvements. Memoization table for voxel lookup? Deferred gradient calculation?
 * UI to change contribution of gradients to transfer function
-* HSV interpolation rather than RGB interpolation
-* Dynamically update transfer function when selected color is modified
 * Threshold selector for first-hit render
+* Dynamically update transfer function when selected color is modified
+* Select transfer function memoization resolution
+
+### GPU renderer
+
+* Add the remaining rendering algorithms
+* Add transfer function support
+* Add gradient support
+* Integrate TF editor and rendering parameters to renderer
+* Phong shading
+* Integrate step size in a way that doesn't break the debugger
+
+### Refactoring
 
 * Refactoring rendering algorithms to separate files  
 * Refactoring parts of long files into separate classes
+* Refactor different rendering algorithms to different shader files
 
-* Direct3D acceleration via pixel shaders  
+### Software renderer
+
+* Exponential refinement after view has been selected & not interacted with for a bit  
+* Performance improvements. Memoization table for voxel lookup? Deferred gradient calculation?
+* HSV interpolation rather than RGB interpolation
+
+### Misc
+
 * Fix slightly wonky rotation if convenient  
