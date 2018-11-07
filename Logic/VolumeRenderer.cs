@@ -152,7 +152,6 @@ namespace VolViz.Logic
                     rayPosition.Y,
                     rayPosition.Z);
                 
-                // TODO: Create a suitable implementation and (real-time) editor for the transfer function
                 Vector3 colorAtThisVoxel = GetColorOfIntensity(voxelValue);
                 float opacityAtThisVoxel = GetOpacityOfIntensity(voxelValue);
 

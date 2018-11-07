@@ -466,6 +466,8 @@ namespace VolViz.DirectX
             constantBufferData.UpSpan.Y = renderer.Viewport.UpSpan.Y;
             constantBufferData.UpSpan.Z = renderer.Viewport.UpSpan.Z;
 
+            // Since sampling of texture data is always from [0,1] rather than dimension size, must compensate
+            // for the fact that dataset dimensions have different size when sampling.
             constantBufferData.DimensionSizeFactors.X = volume.XSize / (float)volume.SizeOfLargestDimension;
             constantBufferData.DimensionSizeFactors.Y = volume.YSize / (float)volume.SizeOfLargestDimension;
             constantBufferData.DimensionSizeFactors.Z = volume.ZSize / (float)volume.SizeOfLargestDimension;

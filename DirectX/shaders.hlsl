@@ -35,6 +35,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 	// First-hit rendering algorithm
 	const float fixedStepSize = 0.01;
 	const float threshold = 0.1;
+	const float modelSpaceCenterOfDimension = 0.5f; // Sampling is always from [0,1]
 
 	float rayLength = 0;
 	float cutoffDistance = 5;
@@ -43,11 +44,13 @@ float4 PSMain(PSInput input) : SV_TARGET
 
 	while (rayLength < cutoffDistance)
 	{
+		// Ray position is in intermediate space, must be translated to model space for sampling
+		// This should ideally happen outside of the loop, but decent proof of concept.
 		float4 samplingLocation = float4(
-			rayPosition.x / DimensionSizeFactors.x,
-			rayPosition.y / DimensionSizeFactors.y,
-			rayPosition.z / DimensionSizeFactors.z,
-			0); // Grossly inefficient, but decent proof of concept.
+			modelSpaceCenterOfDimension + rayPosition.x / DimensionSizeFactors.x,
+			modelSpaceCenterOfDimension + rayPosition.y / DimensionSizeFactors.y,
+			modelSpaceCenterOfDimension + rayPosition.z / DimensionSizeFactors.z,
+			0);
 
 		float4 voxelValue = g_texture.Sample(g_sampler, samplingLocation, 0, 1);
 
