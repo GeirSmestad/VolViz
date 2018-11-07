@@ -71,5 +71,12 @@ namespace VolViz
 
             _renderConfigUpdated();
         }
+
+        private void checkBoxDisableSwRender_CheckedChanged(object sender, EventArgs e)
+        {
+            _renderConfiguration.DisableSoftwareRenderWhenHardwareRendering = checkBoxDisableSwRender.Checked;
+
+            _renderConfigUpdated();
+        }
     }
 }

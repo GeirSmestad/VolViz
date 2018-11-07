@@ -166,20 +166,24 @@ namespace VolViz
                 return; // Hacky workaround for chicken-and-egg problem w/TF editor
             }
             
-            var render = renderer.Render();
-            var output = ResizeImage(render, canvas.Width, canvas.Height);
-
-            var previousFrame = canvas.Image;
-
-            canvas.Image = output;
-
-            if (previousFrame != null)
+            if (!renderer.RenderConfiguration.DisableSoftwareRenderWhenHardwareRendering ||
+                _hardwareRenderer == null)
             {
-                previousFrame.Dispose();
+                var render = renderer.Render();
+                var output = ResizeImage(render, canvas.Width, canvas.Height);
+
+                var previousFrame = canvas.Image;
+
+                canvas.Image = output;
+
+                if (previousFrame != null)
+                {
+                    previousFrame.Dispose();
+                }
+
+                canvas.Refresh();
             }
-
-            canvas.Refresh();
-
+            
             if (_hardwareRenderer != null)
             {
                 _hardwareRenderer.Update();

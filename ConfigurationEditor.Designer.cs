@@ -38,6 +38,7 @@
             this.tabPageFirstHit = new System.Windows.Forms.TabPage();
             this.tabPageMip = new System.Windows.Forms.TabPage();
             this.tabPageAverage = new System.Windows.Forms.TabPage();
+            this.checkBoxDisableSwRender = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.stepSizeSelector)).BeginInit();
             this.renderModeSpecificControls.SuspendLayout();
             this.SuspendLayout();
@@ -164,11 +165,25 @@
             this.tabPageAverage.Text = "Average";
             this.tabPageAverage.UseVisualStyleBackColor = true;
             // 
+            // checkBoxDisableSwRender
+            // 
+            this.checkBoxDisableSwRender.AutoSize = true;
+            this.checkBoxDisableSwRender.Checked = true;
+            this.checkBoxDisableSwRender.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxDisableSwRender.Location = new System.Drawing.Point(82, 237);
+            this.checkBoxDisableSwRender.Name = "checkBoxDisableSwRender";
+            this.checkBoxDisableSwRender.Size = new System.Drawing.Size(269, 17);
+            this.checkBoxDisableSwRender.TabIndex = 6;
+            this.checkBoxDisableSwRender.Text = "Disable software renderer when hardware rendering";
+            this.checkBoxDisableSwRender.UseVisualStyleBackColor = true;
+            this.checkBoxDisableSwRender.CheckedChanged += new System.EventHandler(this.checkBoxDisableSwRender_CheckedChanged);
+            // 
             // ConfigurationEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(447, 465);
+            this.Controls.Add(this.checkBoxDisableSwRender);
             this.Controls.Add(this.renderModeSpecificControls);
             this.Controls.Add(this.checkBoxPhongShading);
             this.Controls.Add(this.checkBoxUseGradientsInTF);
@@ -196,5 +211,6 @@
         private System.Windows.Forms.TabPage tabPageFirstHit;
         private System.Windows.Forms.TabPage tabPageMip;
         private System.Windows.Forms.TabPage tabPageAverage;
+        private System.Windows.Forms.CheckBox checkBoxDisableSwRender;
     }
 }
