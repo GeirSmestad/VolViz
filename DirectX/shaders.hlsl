@@ -49,8 +49,9 @@ float4 PSMain(PSInput input) : SV_TARGET
 			return voxelValue;
 		}
 
-		rayPosition += ProjectionDirection * StepSize;
-		rayLength += StepSize;
+		// Using dynamic step size screws up PS debugger. Use fixed for now.
+		rayPosition += ProjectionDirection * fixedStepSize;
+		rayLength += fixedStepSize;		
 	}
 
 	float4 zeroColor = { 0, 0, 0, 0 };
