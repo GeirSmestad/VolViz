@@ -2,7 +2,7 @@
 
 This is a demonstration of (3D) volume rendering of volumetric data, e.g. CT or MRI datasets. 
 
-It is written in C#/.NET, and loosely based on a course I took during my Master of Computer Science degree (Visualization group at the University of Bergen, Norway). Currently purely CPU-based rendering. I might experiment with pixel shaders in Direct3D if the logic is stable and there is nothing that inspires me more.
+It is written in C#/.NET, and loosely based on a course I took during my Master of Computer Science degree (Visualization group at the University of Bergen, Norway). Currently purely CPU-based rendering.
 
 The front-end is written in Windows Forms, until I come to my senses. (Likely never - WinForms is excellent for prototyping lightweight Windows GUI applications, sorry to say). 
 
@@ -20,6 +20,8 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 * Threshold selector for first-hit render
 * Dynamically update transfer function when selected color is modified
 * Select transfer function memoization resolution
+* Dataset selector. Additional datasets
+* Make the UI less weird at some point. Preferably after renderers are a bit more complete.
 
 ### GPU renderer
 
@@ -30,11 +32,12 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 * Phong shading
 * Integrate step size in a way that doesn't break the debugger
 
-### Refactoring
+### Refactoring/performance
 
 * Refactoring rendering algorithms to separate files  
 * Refactoring parts of long files into separate classes
 * Refactor different rendering algorithms to different shader files
+* Make transfer function editor more performant. (Do a profiler run?)
 
 ### Software renderer
 
