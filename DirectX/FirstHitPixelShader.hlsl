@@ -20,16 +20,6 @@ cbuffer ConstantBuffer : register(b0)
 	float StepSize;
 };
 
-PSInput VSMain(float4 position : POSITION, float4 uv : TEXCOORD)
-{
-	PSInput result;
-
-	result.position = position;
-	result.uv = uv;
-
-	return result;
-}
-
 float4 PSMain(PSInput input) : SV_TARGET
 {
 	// First-hit rendering algorithm

@@ -5,17 +5,39 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using VolViz.Configuration;
 
 namespace VolViz
 {
     public static class Utils
     {
-        public static string GetShaderPath()
-        {
-            var executablePath = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}";
+        private const string VertexShaderFilename = "VertexShader.hlsl";
 
-            var releasePath = $"{executablePath}\\shaders.hlsl";
-            var devPath = $"{executablePath}\\..\\..\\DirectX\\shaders.hlsl";
+        private const string FirstHitShaderFilename = "FirstHitPixelShader.hlsl";
+        private const string MipShaderFilename = "MipPixelShader.hlsl";
+        private const string AverageShaderFilename = "AveragePixelShader.hlsl";
+        private const string DvrShaderFilename = "DvrPixelShader.hlsl";
+
+        public static string GetVertexShaderPath()
+        {
+            return GetShaderPath(VertexShaderFilename);
+        }
+
+        public static string GetPixelShaderForRenderingMode(RenderingMode renderingMode)
+        {
+            switch (renderingMode)
+            {
+                case RenderingMode.FirstHit:
+                    return GetShaderPath(FirstHitShaderFilename);
+                default:
+                    throw new NotImplementedException("Rendering mode not supported");
+            }
+        }
+
+        private static string GetShaderPath(string shaderFilename)
+        {
+            var releasePath = $"{GetShaderDirectoryForRelease()}\\{shaderFilename}";
+            var devPath = $"{GetShaderDirectoryForDev()}\\{shaderFilename}";
 
             if (File.Exists(releasePath)) {
                 return releasePath;
@@ -26,7 +48,21 @@ namespace VolViz
                 return devPath;
             }
 
-            throw new FileNotFoundException($"Could not find shaders. Looked in '{releasePath}' and '{devPath}'");
+            throw new FileNotFoundException($"Could not find shader. Looked in '{releasePath}' and '{devPath}'");
+        }
+
+        private static string GetShaderDirectoryForDev()
+        {
+            var executablePath = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}";
+
+            return $"{executablePath}\\Shaders";
+        }
+
+        private static string GetShaderDirectoryForRelease()
+        {
+            var executablePath = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}";
+
+            return $"{executablePath}\\..\\..\\DirectX";
         }
     }
 }

@@ -180,16 +180,19 @@ namespace VolViz.DirectX
 
             // Create the pipeline state, which includes compiling and loading shaders.
 
+            var vertexShaderPath = Utils.GetVertexShaderPath();
+            var pixelShaderPath = Utils.GetPixelShaderForRenderingMode(VolViz.Configuration.RenderingMode.FirstHit);
+
 #if DEBUG
-            var vertexShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile(Utils.GetShaderPath(), "VSMain", "vs_5_0", SharpDX.D3DCompiler.ShaderFlags.Debug));
+            var vertexShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile(vertexShaderPath, "VSMain", "vs_5_0", SharpDX.D3DCompiler.ShaderFlags.Debug));
 #else
-            var vertexShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile("shaders.hlsl", "VSMain", "vs_5_0"));
+            var vertexShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile(vertexShaderPath, "VSMain", "vs_5_0"));
 #endif
 
 #if DEBUG
-            var pixelShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile(Utils.GetShaderPath(), "PSMain", "ps_5_0", SharpDX.D3DCompiler.ShaderFlags.Debug));
+            var pixelShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile(pixelShaderPath, "PSMain", "ps_5_0", SharpDX.D3DCompiler.ShaderFlags.Debug));
 #else
-            var pixelShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile("shaders.hlsl", "PSMain", "ps_5_0"));
+            var pixelShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile(pixelShaderPath, "PSMain", "ps_5_0"));
 #endif
 
             // Define the vertex input layout.
