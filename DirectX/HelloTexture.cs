@@ -181,7 +181,7 @@ namespace VolViz.DirectX
             // Create the pipeline state, which includes compiling and loading shaders.
 
             var vertexShaderPath = Utils.GetVertexShaderPath();
-            var pixelShaderPath = Utils.GetPixelShaderForRenderingMode(VolViz.Configuration.RenderingMode.FirstHit);
+            var pixelShaderPath = Utils.GetPixelShaderForRenderingMode(VolViz.Configuration.RenderingMode.Mip);
 
 #if DEBUG
             var vertexShader = new ShaderBytecode(SharpDX.D3DCompiler.ShaderBytecode.CompileFromFile(vertexShaderPath, "VSMain", "vs_5_0", SharpDX.D3DCompiler.ShaderFlags.Debug));

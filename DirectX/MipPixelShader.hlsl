@@ -22,7 +22,7 @@ cbuffer ConstantBuffer : register(b0)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-	// First-hit rendering algorithm
+	// Maximum Intensity Projection rendering algorithm
 	const float fixedStepSize = 0.01;
 	const float threshold = 0.1;
 	const float modelSpaceCenterOfDimension = 0.5f; // Sampling is always from [0,1]
@@ -31,6 +31,8 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float cutoffDistance = 5;
 
 	float4 rayPosition = BottomLeft + RightSpan * input.uv.x + UpSpan * input.uv.y;
+
+	float maximumIntensityAlongRay = 0;
 
 	while (rayLength < cutoffDistance)
 	{
@@ -44,9 +46,9 @@ float4 PSMain(PSInput input) : SV_TARGET
 
 		float4 voxelValue = g_texture.Sample(g_sampler, samplingLocation, 0, 1);
 
-		if (voxelValue.x > threshold)
+		if (voxelValue.x > maximumIntensityAlongRay)
 		{
-			return voxelValue;
+			maximumIntensityAlongRay = voxelValue.x;
 		}
 
 		// Using dynamic step size screws up PS debugger. Use fixed for now.
@@ -54,8 +56,6 @@ float4 PSMain(PSInput input) : SV_TARGET
 		rayLength += fixedStepSize;		
 	}
 
-	float4 zeroColor = { 0, 0, 0, 0 };
-
-	return zeroColor;
+	return float4(maximumIntensityAlongRay, maximumIntensityAlongRay, maximumIntensityAlongRay, 1);
 
 }
