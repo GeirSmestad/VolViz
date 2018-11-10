@@ -22,15 +22,16 @@ cbuffer ConstantBuffer : register(b0)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-	// First-hit rendering algorithm
-	const float fixedStepSize = 0.01;
+	// Direct Volume Rendering algorithm
+	const float fixedStepSize = 0.002;
 	const float threshold = 0.1;
 	const float modelSpaceCenterOfDimension = 0.5f; // Sampling is always from [0,1]
 
+	float4 rayPosition = BottomLeft + RightSpan * input.uv.x + UpSpan * input.uv.y;
+
 	float rayLength = 0;
 	float cutoffDistance = 5;
-
-	float4 rayPosition = BottomLeft + RightSpan * input.uv.x + UpSpan * input.uv.y;
+	float4 outputColor = {0,0,0,0};
 
 	while (rayLength < cutoffDistance)
 	{
@@ -42,20 +43,30 @@ float4 PSMain(PSInput input) : SV_TARGET
 			modelSpaceCenterOfDimension + rayPosition.z / DimensionSizeFactors.z,
 			0);
 
-		float4 voxelValue = g_texture.Sample(g_sampler, samplingLocation, 0, 1);
+		// TODO: Modify by transfer function
+		float4 colorAtThisVoxel = g_texture.Sample(g_sampler, samplingLocation, 0, 1);
 
-		if (voxelValue.x > threshold)
-		{
-			return voxelValue;
-		}
+		// TODO: Modify by transfer function
+		float opacityAtThisVoxel = colorAtThisVoxel.x;
+
+
+		//if (UsePhongShading)
+		//{
+		//	// TODO: Modify intensity at this voxel by shading
+		//}
+
+		//if (ModifyOpacityByGradientMagnitude) 
+		//{
+		//	// TODO: Modify opacity by gradient magnitude in this location
+		//}
+
+		// DVR compositing
+		outputColor = colorAtThisVoxel * opacityAtThisVoxel + (1 - opacityAtThisVoxel) * outputColor;
 
 		// Using dynamic step size screws up PS debugger. Use fixed for now.
 		rayPosition += ProjectionDirection * fixedStepSize;
 		rayLength += fixedStepSize;		
 	}
 
-	float4 zeroColor = { 0, 0, 0, 0 };
-
-	return zeroColor;
-
+	return outputColor;
 }

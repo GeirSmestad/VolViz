@@ -34,6 +34,7 @@ namespace VolViz
                 case RenderingMode.Average:
                     return GetShaderPath(AverageShaderFilename);
                 case RenderingMode.Dvr:
+                    return GetShaderPath(DvrShaderFilename);
                 default:
                     throw new NotImplementedException("Rendering mode not supported");
             }
