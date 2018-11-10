@@ -151,7 +151,10 @@
     <Content Include="Datasets\lobster-120x120x34.txt" />
     <Content Include="Datasets\skewedhead-184x256x170.txt" />
     <Content Include="Datasets\stagbeetle-277x277x164.txt" />
+    <Content Include="DirectX\AveragePixelShader.hlsl" />
+    <Content Include="DirectX\DvrPixelShader.hlsl" />
     <Content Include="DirectX\FirstHitPixelShader.hlsl" />
+    <Content Include="DirectX\MipPixelShader.hlsl" />
     <Content Include="DirectX\shaders.hlsl" />
     <Content Include="DirectX\VertexShader.hlsl" />
   </ItemGroup>
