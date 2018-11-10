@@ -22,7 +22,7 @@ cbuffer ConstantBuffer : register(b0)
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-	// First-hit rendering algorithm
+	// Average projection rendering algorithm. Should preferably use ray-box intersection for less zero samples.
 	const float fixedStepSize = 0.01;
 	const float threshold = 0.1;
 	const float modelSpaceCenterOfDimension = 0.5f; // Sampling is always from [0,1]
@@ -31,6 +31,9 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float cutoffDistance = 5;
 
 	float4 rayPosition = BottomLeft + RightSpan * input.uv.x + UpSpan * input.uv.y;
+
+	float accumulatedIntensitiesAlongRay = 0;
+	int numSamples = 0;
 
 	while (rayLength < cutoffDistance)
 	{
@@ -44,18 +47,21 @@ float4 PSMain(PSInput input) : SV_TARGET
 
 		float4 voxelValue = g_texture.Sample(g_sampler, samplingLocation, 0, 1);
 
-		if (voxelValue.x > threshold)
-		{
-			return voxelValue;
-		}
+		accumulatedIntensitiesAlongRay += voxelValue;
 
 		// Using dynamic step size screws up PS debugger. Use fixed for now.
 		rayPosition += ProjectionDirection * fixedStepSize;
-		rayLength += fixedStepSize;		
+		rayLength += fixedStepSize;
+		numSamples++;
 	}
 
-	float4 zeroColor = { 0, 0, 0, 0 };
+	float averageIntensityAlongRay = accumulatedIntensitiesAlongRay / numSamples;
 
-	return zeroColor;
+	// Hack: Adjust intensity up by a factor to compensate for large number of zero samples that happen
+	// since we are not yet using ray-box-intersection to ensure that we only sample inside the volume space.
+	averageIntensityAlongRay *= 6;
+
+
+	return float4(averageIntensityAlongRay, averageIntensityAlongRay, averageIntensityAlongRay, 1);
 
 }
