@@ -259,19 +259,18 @@ namespace VolViz.DirectX
             vertexBufferView.StrideInBytes = Utilities.SizeOf<Vertex>();
             vertexBufferView.SizeInBytes = vertexBufferSize;
 
-            // Create the texture.
-            // Describe and create a Texture3D.
-            var textureDesc = ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight, TextureDepth, 1);
-            texture = device.CreateCommittedResource(new HeapProperties(
+            // Load volume data
+            var volumeTextureDesc = ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight, TextureDepth, 1);
+            volumeTexture = device.CreateCommittedResource(new HeapProperties(
                 HeapType.Default), 
                 HeapFlags.None, 
-                textureDesc, 
+                volumeTextureDesc, 
                 ResourceStates.CopyDestination);
             
-            long uploadBufferSize = GetRequiredIntermediateSize(this.texture, 0, 1);
+            long volumeUploadBufferSize = GetRequiredIntermediateSize(this.volumeTexture, 0, 1);
 
             // Create the GPU upload buffer.
-            var textureUploadHeap = device.CreateCommittedResource(new HeapProperties(
+            var volumeTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
                 CpuPageProperty.WriteBack, 
                 MemoryPool.L0), HeapFlags.None, 
                 ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight, TextureDepth, 1), 
@@ -279,29 +278,28 @@ namespace VolViz.DirectX
 
             // Copy data to the intermediate upload heap and then schedule a copy 
             // from the upload heap to the Texture3D.
-            byte[] textureData = GenerateTextureData();
+            byte[] volumeTextureData = GenerateTextureData();
 
-            var handle = GCHandle.Alloc(textureData, GCHandleType.Pinned);
-            var ptr = Marshal.UnsafeAddrOfPinnedArrayElement(textureData, 0);
+            var volumeHandle = GCHandle.Alloc(volumeTextureData, GCHandleType.Pinned);
+            var volumePtr = Marshal.UnsafeAddrOfPinnedArrayElement(volumeTextureData, 0);
 
-            textureUploadHeap.WriteToSubresource(0, null, ptr, TexturePixelSize * TextureWidth, TexturePixelSize * TextureWidth * TextureHeight);
+            volumeTextureUploadHeap.WriteToSubresource(0, null, volumePtr, TexturePixelSize * TextureWidth, TexturePixelSize * TextureWidth * TextureHeight);
 
-            handle.Free();
+            volumeHandle.Free();
 
-            commandList.CopyTextureRegion(new TextureCopyLocation(texture, 0), 0, 0, 0, new TextureCopyLocation(textureUploadHeap, 0), null);
+            commandList.CopyTextureRegion(new TextureCopyLocation(volumeTexture, 0), 0, 0, 0, new TextureCopyLocation(volumeTextureUploadHeap, 0), null);
+            commandList.ResourceBarrierTransition(this.volumeTexture, ResourceStates.CopyDestination, ResourceStates.PixelShaderResource);
 
-            commandList.ResourceBarrierTransition(this.texture, ResourceStates.CopyDestination, ResourceStates.PixelShaderResource);
-
-            // Describe and create a SRV for the texture.
-            var srvDesc = new ShaderResourceViewDescription
+            // Describe and create a SRV for the volume texture.
+            var volumeSrvDesc = new ShaderResourceViewDescription
             {
                 Shader4ComponentMapping = D3DXUtilities.DefaultComponentMapping(),
-                Format = textureDesc.Format,
+                Format = volumeTextureDesc.Format,
                 Dimension = ShaderResourceViewDimension.Texture3D,
                 Texture3D = { MipLevels = 1 },
             };
 
-            device.CreateShaderResourceView(this.texture, srvDesc, shaderRenderViewHeap.CPUDescriptorHandleForHeapStart);
+            device.CreateShaderResourceView(this.volumeTexture, volumeSrvDesc, shaderRenderViewHeap.CPUDescriptorHandleForHeapStart);
 
             // Command lists are created in the recording state, but there is nothing
             // to record yet. The main loop expects it to be closed, so close it now.
@@ -335,7 +333,7 @@ namespace VolViz.DirectX
             WaitForPreviousFrame();
 
             //release temp texture
-            textureUploadHeap.Dispose();
+            volumeTextureUploadHeap.Dispose();
         }
 
         byte[] GenerateTextureData()
@@ -521,7 +519,7 @@ namespace VolViz.DirectX
             commandList.Dispose();
             vertexBuffer.Dispose();
             constantBuffer.Dispose();
-            texture.Dispose();
+            volumeTexture.Dispose();
             fence.Dispose();
             swapChain.Dispose();
             device.Dispose();
@@ -569,7 +567,7 @@ namespace VolViz.DirectX
         // App resources.
         Resource vertexBuffer;
         VertexBufferView vertexBufferView;
-        Resource texture;
+        Resource volumeTexture;
         Resource constantBuffer;
         ConstantBuffer constantBufferData;
         IntPtr constantBufferPointer;
