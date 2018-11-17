@@ -385,6 +385,7 @@ namespace VolViz.DirectX
 
             //release temp texture
             volumeTextureUploadHeap.Dispose();
+            transferFunctionTextureUploadHeap.Dispose();
         }
 
         byte[] GenerateVolumeTextureData()
