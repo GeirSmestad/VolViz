@@ -108,7 +108,7 @@ namespace VolViz.DirectX
 
             var srvHeapDesc = new DescriptorHeapDescription()
             {
-                DescriptorCount = 1,
+                DescriptorCount = 2,
                 Flags = DescriptorHeapFlags.ShaderVisible,
                 Type = DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView
             };
@@ -152,7 +152,7 @@ namespace VolViz.DirectX
                         new DescriptorRange()
                         {
                             RangeType = DescriptorRangeType.ShaderResourceView,
-                            DescriptorCount = 1,
+                            DescriptorCount = 2,
                             OffsetInDescriptorsFromTableStart = int.MinValue,
                             BaseShaderRegister = 0
                         }),
@@ -278,7 +278,7 @@ namespace VolViz.DirectX
 
             // Copy data to the intermediate upload heap and then schedule a copy 
             // from the upload heap to the Texture3D.
-            byte[] volumeTextureData = GenerateTextureData();
+            byte[] volumeTextureData = GenerateVolumeTextureData();
 
             var volumeHandle = GCHandle.Alloc(volumeTextureData, GCHandleType.Pinned);
             var volumePtr = Marshal.UnsafeAddrOfPinnedArrayElement(volumeTextureData, 0);
@@ -300,6 +300,54 @@ namespace VolViz.DirectX
             };
 
             device.CreateShaderResourceView(this.volumeTexture, volumeSrvDesc, shaderRenderViewHeap.CPUDescriptorHandleForHeapStart);
+            // End load volume data
+
+            // Load transfer function
+            // TODO: Insert dimension of transfer function lookup table
+            var transferFunctionTextureDesc = ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, 25, 1);
+            transferFunctionTexture = device.CreateCommittedResource(new HeapProperties(
+                HeapType.Default),
+                HeapFlags.None,
+                transferFunctionTextureDesc,
+                ResourceStates.CopyDestination);
+
+            long transferFunctionUploadBufferSize = GetRequiredIntermediateSize(this.transferFunctionTexture, 0, 1);
+
+            // Create the GPU upload buffer.
+            var transferFunctionTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
+                CpuPageProperty.WriteBack,
+                MemoryPool.L0), HeapFlags.None,
+                ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, 25, 1), // TODO: Dimension of transfer function lookup table
+                ResourceStates.GenericRead);
+
+            // Copy data to the intermediate upload heap and then schedule a copy 
+            // from the upload heap to the Texture3D.
+            byte[] transferFunctionTextureData = GenerateTransferFunctionTextureData();
+
+            var transferFunctionHandle = GCHandle.Alloc(transferFunctionTextureData, GCHandleType.Pinned);
+            var transferFunctionPtr = Marshal.UnsafeAddrOfPinnedArrayElement(transferFunctionTextureData, 0);
+
+            transferFunctionTextureUploadHeap.WriteToSubresource(0, null, transferFunctionPtr, 100, 100); // TODO: Dimensions
+
+            transferFunctionHandle.Free();
+
+            commandList.CopyTextureRegion(new TextureCopyLocation(transferFunctionTexture, 0), 0, 0, 0, new TextureCopyLocation(transferFunctionTextureUploadHeap, 0), null);
+            commandList.ResourceBarrierTransition(this.transferFunctionTexture, ResourceStates.CopyDestination, ResourceStates.PixelShaderResource);
+
+            // Describe and create a SRV for the transfer function texture.
+            var transferFunctionSrvDesc = new ShaderResourceViewDescription
+            {
+                Shader4ComponentMapping = D3DXUtilities.DefaultComponentMapping(),
+                Format = transferFunctionTextureDesc.Format,
+                Dimension = ShaderResourceViewDimension.Texture1D,
+                Texture1D = { MipLevels = 1 },
+            };
+
+            var handleIncrement = device.GetDescriptorHandleIncrementSize(DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
+            
+            CpuDescriptorHandle locationDesctiptor = shaderRenderViewHeap.CPUDescriptorHandleForHeapStart + handleIncrement;
+            device.CreateShaderResourceView(this.transferFunctionTexture, transferFunctionSrvDesc, locationDesctiptor);
+            // End load transfer function data
 
             // Command lists are created in the recording state, but there is nothing
             // to record yet. The main loop expects it to be closed, so close it now.
@@ -336,7 +384,7 @@ namespace VolViz.DirectX
             volumeTextureUploadHeap.Dispose();
         }
 
-        byte[] GenerateTextureData()
+        byte[] GenerateVolumeTextureData()
         {
             int rowPitch = TextureWidth * TexturePixelSize;
             int layerPitch = rowPitch * TextureHeight;
@@ -360,6 +408,29 @@ namespace VolViz.DirectX
                 data[n + 2] = (byte)(voxelValue * 255);
                 data[n + 3] = 0xff;
             }
+
+            return data;
+        }
+
+        byte[] GenerateTransferFunctionTextureData()
+        {
+            // TODO: Dimensions + actually load transfer function here
+            // TODO: Must create new, correct sampler such that pixel shader doesn't interpolate towards area outside the texture
+
+            byte[] data = new byte[100];
+
+            for (int n = 0; n < 100; n += TexturePixelSize)
+            {
+                data[n] = (byte)((1 - n / 100f) * 255); // R
+                data[n + 1] = (byte)((1 - n / 100f) * 255); // G
+                data[n + 2] = (byte)((1 - n / 100f) * 255); // B
+                data[n + 3] = (byte)((1 - n / 100f) * 255); // A
+            }
+
+            data[99] = 255;
+            data[98] = 0;
+            data[97] = 0;
+            data[96] = 255;
 
             return data;
         }
@@ -568,6 +639,7 @@ namespace VolViz.DirectX
         Resource vertexBuffer;
         VertexBufferView vertexBufferView;
         Resource volumeTexture;
+        Resource transferFunctionTexture;
         Resource constantBuffer;
         ConstantBuffer constantBufferData;
         IntPtr constantBufferPointer;

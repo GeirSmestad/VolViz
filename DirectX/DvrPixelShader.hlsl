@@ -4,7 +4,9 @@
 	float2 uv : TEXCOORD;
 };
 
-Texture3D g_texture : register(t0);
+Texture3D volumeTexture : register(t0);
+Texture1D transferFunctionTexture: register(t1);
+
 SamplerState g_sampler : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
@@ -33,6 +35,12 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float cutoffDistance = 5;
 	float4 outputColor = {0,0,0,0};
 
+	// Debug only. Test that transfer function is correctly loaded.
+	if (input.uv.y < 0.1) 
+	{
+		return transferFunctionTexture.Sample(g_sampler, input.uv.x, 0, 1);
+	}
+
 	while (rayLength < cutoffDistance)
 	{
 		// Ray position is in intermediate space, must be translated to model space for sampling
@@ -44,7 +52,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 			0);
 
 		// TODO: Modify by transfer function
-		float4 colorAtThisVoxel = g_texture.Sample(g_sampler, samplingLocation, 0, 1);
+		float4 colorAtThisVoxel = volumeTexture.Sample(g_sampler, samplingLocation, 0, 1);
 
 		// TODO: Modify by transfer function
 		float opacityAtThisVoxel = colorAtThisVoxel.x;
@@ -63,7 +71,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 		// DVR compositing
 		outputColor = colorAtThisVoxel * opacityAtThisVoxel + (1 - opacityAtThisVoxel) * outputColor;
 
-		// Using dynamic step size screws up PS debugger. Use fixed for now.
+		// Using dynamic step size screws up pixel shader debugger. Use fixed for now.
 		rayPosition += ProjectionDirection * fixedStepSize;
 		rayLength += fixedStepSize;		
 	}
