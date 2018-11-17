@@ -7,7 +7,7 @@
 Texture3D volumeTexture : register(t0);
 Texture1D transferFunctionTexture: register(t1);
 
-SamplerState g_sampler : register(s0);
+SamplerState volumeSampler : register(s0);
 
 cbuffer ConstantBuffer : register(b0)
 {
@@ -35,10 +35,10 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float cutoffDistance = 5;
 	float4 outputColor = {0,0,0,0};
 
-	// Debug only. Test that transfer function is correctly loaded.
+	// Debug only. Display transfer function, to see that it's is correctly loaded.
 	if (input.uv.y < 0.025) 
 	{
-		return transferFunctionTexture.Sample(g_sampler, input.uv.x, 0, 1);
+		return transferFunctionTexture.Sample(volumeSampler, input.uv.x, 0, 1);
 	}
 
 	while (rayLength < cutoffDistance)
@@ -51,12 +51,21 @@ float4 PSMain(PSInput input) : SV_TARGET
 			modelSpaceCenterOfDimension + rayPosition.z / DimensionSizeFactors.z,
 			0);
 
-		// TODO: Modify by transfer function
-		float4 colorAtThisVoxel = volumeTexture.Sample(g_sampler, samplingLocation, 0, 1);
+		// X-ray absorption at this point, range [0,1]. (x, y, z and w components all have the same value).
+		float datasetValueAtThisVoxel = volumeTexture.Sample(volumeSampler, samplingLocation, 0, 1).x;
 
-		// TODO: Modify by transfer function
-		float opacityAtThisVoxel = colorAtThisVoxel.x;
+		// Get color and opacity of this dataset value by sampling the transfer function at the given absorption.
+		// TODO: I would expect the following line to work, but it leads to problem unrolling the loop. Alternative method yields no interpolation.
+		// float4 transferFunctionValueAtThisVoxel = transferFunctionTexture.Sample(volumeSampler, datasetValueAtThisVoxel, 0, 1);*/
+		float4 transferFunctionValuesAtThisVoxel = transferFunctionTexture.SampleLevel(volumeSampler, datasetValueAtThisVoxel, 0);
 
+		float4 colorAtThisVoxel = float4(
+			transferFunctionValuesAtThisVoxel.x,
+			transferFunctionValuesAtThisVoxel.y,
+			transferFunctionValuesAtThisVoxel.z,
+			0);
+
+		float opacityAtThisVoxel = transferFunctionValuesAtThisVoxel.w;
 
 		//if (UsePhongShading)
 		//{

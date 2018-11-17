@@ -417,8 +417,7 @@ namespace VolViz.DirectX
 
         byte[] GenerateTransferFunctionTextureData()
         {
-            // TODO: Actually load transfer function here
-            // TODO: Must create new, correct sampler such that pixel shader doesn't interpolate towards area outside the texture
+            // TODO: Should create new, correct sampler such that pixel shader doesn't interpolate towards area outside the texture
 
             int textureSize = TransferFunctionWidth * TexturePixelSize;
 
@@ -426,16 +425,20 @@ namespace VolViz.DirectX
 
             for (int n = 0; n < textureSize; n += TexturePixelSize)
             {
-                data[n] = (byte)((1 - n / (float)textureSize) * 255); // R
-                data[n + 1] = (byte)((1 - n / (float)textureSize) * 255); // G
-                data[n + 2] = (byte)((1 - n / (float)textureSize) * 255); // B
-                data[n + 3] = (byte)((1 - n / (float)textureSize) * 255); // A
-            }
+                // TODO: There's a +/- 1 error here, since the lookup table is 1 space longer than one would
+                // expect: it spans from 0 to 1 in increments of LookupTablePrecision. If this is not fixed,
+                // the highest value of the lookup table will not be included in this texture, which is a minor problem.
 
-            data[textureSize-1] = 255;
-            data[textureSize - 2] = 0;
-            data[textureSize - 3] = 0;
-            data[textureSize - 4] = 255;
+                var intensity = n / (float)textureSize;
+
+                var color = renderer.TransferFunction.GetColorOfIntensity(intensity, useLookupTable: true);
+                var opacity = renderer.TransferFunction.GetOpacityOfIntensity(intensity, useLookupTable: true);
+
+                data[n] = (byte)(color.X * 255); // R
+                data[n + 1] = (byte)(color.Y * 255); // G
+                data[n + 2] = (byte)(color.Z * 255); // B
+                data[n + 3] = (byte)(opacity * 255); // A
+            }
 
             return data;
         }
