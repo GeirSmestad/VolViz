@@ -23,9 +23,11 @@ namespace VolViz.DirectX
         private Volume volume;
         private VolumeRenderer renderer;
 
-        private int TextureWidth;
-        private int TextureHeight;
-        private short TextureDepth;
+        private int VolumeTextureWidth;
+        private int VolumeTextureHeight;
+        private short VolumeTextureDepth;
+
+        private int TransferFunctionWidth;
 
         const int TexturePixelSize = 4;	// The number of bytes used to represent a pixel in the texture.
 
@@ -34,9 +36,11 @@ namespace VolViz.DirectX
             this.volume = volume;
             this.renderer = renderer;
 
-            TextureWidth = volume.XSize;
-            TextureHeight = volume.YSize;
-            TextureDepth = (short)volume.ZSize;
+            VolumeTextureWidth = volume.XSize;
+            VolumeTextureHeight = volume.YSize;
+            VolumeTextureDepth = (short)volume.ZSize;
+
+            TransferFunctionWidth = (int)(1 / TransferFunction.LookupTablePrecision);
         }
 
         /// <summary>
@@ -260,7 +264,7 @@ namespace VolViz.DirectX
             vertexBufferView.SizeInBytes = vertexBufferSize;
 
             // Load volume data
-            var volumeTextureDesc = ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight, TextureDepth, 1);
+            var volumeTextureDesc = ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, VolumeTextureWidth, VolumeTextureHeight, VolumeTextureDepth, 1);
             volumeTexture = device.CreateCommittedResource(new HeapProperties(
                 HeapType.Default), 
                 HeapFlags.None, 
@@ -273,7 +277,7 @@ namespace VolViz.DirectX
             var volumeTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
                 CpuPageProperty.WriteBack, 
                 MemoryPool.L0), HeapFlags.None, 
-                ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, TextureWidth, TextureHeight, TextureDepth, 1), 
+                ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, VolumeTextureWidth, VolumeTextureHeight, VolumeTextureDepth, 1), 
                 ResourceStates.GenericRead);
 
             // Copy data to the intermediate upload heap and then schedule a copy 
@@ -283,7 +287,7 @@ namespace VolViz.DirectX
             var volumeHandle = GCHandle.Alloc(volumeTextureData, GCHandleType.Pinned);
             var volumePtr = Marshal.UnsafeAddrOfPinnedArrayElement(volumeTextureData, 0);
 
-            volumeTextureUploadHeap.WriteToSubresource(0, null, volumePtr, TexturePixelSize * TextureWidth, TexturePixelSize * TextureWidth * TextureHeight);
+            volumeTextureUploadHeap.WriteToSubresource(0, null, volumePtr, TexturePixelSize * VolumeTextureWidth, TexturePixelSize * VolumeTextureWidth * VolumeTextureHeight);
 
             volumeHandle.Free();
 
@@ -386,19 +390,19 @@ namespace VolViz.DirectX
 
         byte[] GenerateVolumeTextureData()
         {
-            int rowPitch = TextureWidth * TexturePixelSize;
-            int layerPitch = rowPitch * TextureHeight;
+            int rowPitch = VolumeTextureWidth * TexturePixelSize;
+            int layerPitch = rowPitch * VolumeTextureHeight;
 
-            int layerSize = TextureWidth * TextureHeight;
-            int textureSize = layerPitch * TextureDepth;
+            int layerSize = VolumeTextureWidth * VolumeTextureHeight;
+            int textureSize = layerPitch * VolumeTextureDepth;
 
 
             byte[] data = new byte[textureSize];
 
             for (int n = 0; n < textureSize; n += TexturePixelSize)
             {
-                int x = (n / 4) % TextureWidth;
-                int y = ((n / 4) % layerSize) / TextureWidth;
+                int x = (n / 4) % VolumeTextureWidth;
+                int y = ((n / 4) % layerSize) / VolumeTextureWidth;
                 int z = (n / 4) / layerSize;
 
                 var voxelValue = volume.Contents[x, y, z];

@@ -36,7 +36,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float4 outputColor = {0,0,0,0};
 
 	// Debug only. Test that transfer function is correctly loaded.
-	if (input.uv.y < 0.1) 
+	if (input.uv.y < 0.025) 
 	{
 		return transferFunctionTexture.Sample(g_sampler, input.uv.x, 0, 1);
 	}

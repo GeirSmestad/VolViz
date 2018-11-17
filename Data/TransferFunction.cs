@@ -9,13 +9,13 @@ namespace VolViz.Data
 {
     public class TransferFunction
     {
+        public static readonly float LookupTablePrecision = 0.01f;
+
         public List<TfNode> Nodes { get; set; }
 
         private Dictionary<float, Vector3> _colorLookupTable;
         private Dictionary<float, float> _opacityLookupTable;
-
-        private const float lookupTablePrecision = 0.01f;
-
+        
         public TransferFunction()
         {
             Nodes = new List<TfNode>()
@@ -92,7 +92,7 @@ namespace VolViz.Data
             _colorLookupTable = new Dictionary<float, Vector3>();
             _opacityLookupTable = new Dictionary<float, float>();
 
-            for (decimal v = 0; v <= 1; v += (decimal)lookupTablePrecision)
+            for (decimal v = 0; v <= 1; v += (decimal)LookupTablePrecision)
             {
                 var floatValue = (float)v;
 

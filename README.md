@@ -25,12 +25,12 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 
 ### GPU renderer
 
-* Add the remaining rendering algorithms
 * Add transfer function support
 * Add gradient support
 * Integrate TF editor and rendering parameters to renderer
 * Phong shading
 * Integrate step size in a way that doesn't break the debugger
+* Fix sampling bug in transfer function sampling, where edge values are erroneously interpolated towards edge
 
 ### Refactoring/performance
 
