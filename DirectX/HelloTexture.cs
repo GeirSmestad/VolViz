@@ -307,8 +307,7 @@ namespace VolViz.DirectX
             // End load volume data
 
             // Load transfer function
-            // TODO: Insert dimension of transfer function lookup table
-            var transferFunctionTextureDesc = ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, 25, 1);
+            var transferFunctionTextureDesc = ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, TransferFunctionWidth, 1);
             transferFunctionTexture = device.CreateCommittedResource(new HeapProperties(
                 HeapType.Default),
                 HeapFlags.None,
@@ -321,7 +320,7 @@ namespace VolViz.DirectX
             var transferFunctionTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
                 CpuPageProperty.WriteBack,
                 MemoryPool.L0), HeapFlags.None,
-                ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, 25, 1), // TODO: Dimension of transfer function lookup table
+                ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, TransferFunctionWidth, 1),
                 ResourceStates.GenericRead);
 
             // Copy data to the intermediate upload heap and then schedule a copy 
@@ -331,7 +330,7 @@ namespace VolViz.DirectX
             var transferFunctionHandle = GCHandle.Alloc(transferFunctionTextureData, GCHandleType.Pinned);
             var transferFunctionPtr = Marshal.UnsafeAddrOfPinnedArrayElement(transferFunctionTextureData, 0);
 
-            transferFunctionTextureUploadHeap.WriteToSubresource(0, null, transferFunctionPtr, 100, 100); // TODO: Dimensions
+            transferFunctionTextureUploadHeap.WriteToSubresource(0, null, transferFunctionPtr, TransferFunctionWidth, TransferFunctionWidth);
 
             transferFunctionHandle.Free();
 
@@ -418,23 +417,25 @@ namespace VolViz.DirectX
 
         byte[] GenerateTransferFunctionTextureData()
         {
-            // TODO: Dimensions + actually load transfer function here
+            // TODO: Actually load transfer function here
             // TODO: Must create new, correct sampler such that pixel shader doesn't interpolate towards area outside the texture
 
-            byte[] data = new byte[100];
+            int textureSize = TransferFunctionWidth * TexturePixelSize;
 
-            for (int n = 0; n < 100; n += TexturePixelSize)
+            byte[] data = new byte[textureSize];
+
+            for (int n = 0; n < textureSize; n += TexturePixelSize)
             {
-                data[n] = (byte)((1 - n / 100f) * 255); // R
-                data[n + 1] = (byte)((1 - n / 100f) * 255); // G
-                data[n + 2] = (byte)((1 - n / 100f) * 255); // B
-                data[n + 3] = (byte)((1 - n / 100f) * 255); // A
+                data[n] = (byte)((1 - n / (float)textureSize) * 255); // R
+                data[n + 1] = (byte)((1 - n / (float)textureSize) * 255); // G
+                data[n + 2] = (byte)((1 - n / (float)textureSize) * 255); // B
+                data[n + 3] = (byte)((1 - n / (float)textureSize) * 255); // A
             }
 
-            data[99] = 255;
-            data[98] = 0;
-            data[97] = 0;
-            data[96] = 255;
+            data[textureSize-1] = 255;
+            data[textureSize - 2] = 0;
+            data[textureSize - 3] = 0;
+            data[textureSize - 4] = 255;
 
             return data;
         }
