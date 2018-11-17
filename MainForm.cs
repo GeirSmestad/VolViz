@@ -283,6 +283,7 @@ namespace VolViz
 
                 _hardwareRenderer.Dispose();
             }
+            _hardwareRenderer = null;
         }
     }
 }
