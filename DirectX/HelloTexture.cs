@@ -474,6 +474,8 @@ namespace VolViz.DirectX
             commandList.SetDescriptorHeaps(1, new DescriptorHeap[] { constantBufferViewHeap });
             commandList.SetGraphicsRootDescriptorTable(1, constantBufferViewHeap.GPUDescriptorHandleForHeapStart);
 
+            UpdateTransferFunctionTexture();
+
             commandList.SetViewport(viewport);
             commandList.SetScissorRectangles(scissorRect);
 
@@ -604,7 +606,60 @@ namespace VolViz.DirectX
             swapChain.Dispose();
             device.Dispose();
         }
-        
+
+        public void UpdateTransferFunctionTexture()
+        {
+            // TODO: This code is identical with TF loading in the LoadAssets method.
+            // Could be extracted to common helper class, perhaps also including
+            // volume texture loading./
+
+            // Load transfer function
+            var transferFunctionTextureDesc = ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, TransferFunctionWidth, 1);
+            transferFunctionTexture = device.CreateCommittedResource(new HeapProperties(
+                HeapType.Default),
+                HeapFlags.None,
+                transferFunctionTextureDesc,
+                ResourceStates.CopyDestination);
+
+            long transferFunctionUploadBufferSize = GetRequiredIntermediateSize(this.transferFunctionTexture, 0, 1);
+
+            // Create the GPU upload buffer.
+            var transferFunctionTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
+                CpuPageProperty.WriteBack,
+                MemoryPool.L0), HeapFlags.None,
+                ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, TransferFunctionWidth, 1),
+                ResourceStates.GenericRead);
+
+            // Copy data to the intermediate upload heap and then schedule a copy 
+            // from the upload heap to the Texture3D.
+            byte[] transferFunctionTextureData = GenerateTransferFunctionTextureData();
+
+            var transferFunctionHandle = GCHandle.Alloc(transferFunctionTextureData, GCHandleType.Pinned);
+            var transferFunctionPtr = Marshal.UnsafeAddrOfPinnedArrayElement(transferFunctionTextureData, 0);
+
+            transferFunctionTextureUploadHeap.WriteToSubresource(0, null, transferFunctionPtr, TransferFunctionWidth, TransferFunctionWidth);
+
+            transferFunctionHandle.Free();
+
+            commandList.CopyTextureRegion(new TextureCopyLocation(transferFunctionTexture, 0), 0, 0, 0, new TextureCopyLocation(transferFunctionTextureUploadHeap, 0), null);
+            commandList.ResourceBarrierTransition(this.transferFunctionTexture, ResourceStates.CopyDestination, ResourceStates.PixelShaderResource);
+
+            // Describe and create a SRV for the transfer function texture.
+            var transferFunctionSrvDesc = new ShaderResourceViewDescription
+            {
+                Shader4ComponentMapping = D3DXUtilities.DefaultComponentMapping(),
+                Format = transferFunctionTextureDesc.Format,
+                Dimension = ShaderResourceViewDimension.Texture1D,
+                Texture1D = { MipLevels = 1 },
+            };
+
+            var handleIncrement = device.GetDescriptorHandleIncrementSize(DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
+
+            CpuDescriptorHandle locationDesctiptor = shaderRenderViewHeap.CPUDescriptorHandleForHeapStart + handleIncrement;
+            device.CreateShaderResourceView(this.transferFunctionTexture, transferFunctionSrvDesc, locationDesctiptor);
+            // End load transfer function data
+        }
+
         struct Vertex
         {
             public Vector3 Position;
