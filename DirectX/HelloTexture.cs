@@ -614,7 +614,9 @@ namespace VolViz.DirectX
         {
             // TODO: This code is identical with TF loading in the LoadAssets method.
             // Could be extracted to common helper class, perhaps also including
-            // volume texture loading./
+            // volume texture loading.
+
+            // TODO: I suspect the might be another, minor, memory leak here.
 
             // Load transfer function
             var transferFunctionTextureDesc = ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, TransferFunctionWidth, 1);

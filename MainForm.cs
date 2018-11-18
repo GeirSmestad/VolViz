@@ -262,7 +262,7 @@ namespace VolViz
             var form = new RenderForm("Hello Texture")
             {
                 Width = 640,
-                Height = 400
+                Height = 640
             };
             form.Show();
 
