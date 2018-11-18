@@ -579,6 +579,9 @@ namespace VolViz.DirectX
             swapChain.Present(1, 0);
 
             WaitForPreviousFrame();
+
+            // Upload heap was set during command list population and may be disposed now that the frame has been drawn
+            transferFunctionTextureUploadHeap.Dispose();
         }
 
         public void Dispose()
@@ -624,7 +627,7 @@ namespace VolViz.DirectX
             long transferFunctionUploadBufferSize = GetRequiredIntermediateSize(this.transferFunctionTexture, 0, 1);
 
             // Create the GPU upload buffer.
-            var transferFunctionTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
+            transferFunctionTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
                 CpuPageProperty.WriteBack,
                 MemoryPool.L0), HeapFlags.None,
                 ResourceDescription.Texture1D(Format.R8G8B8A8_UNorm, TransferFunctionWidth, 1),
@@ -707,6 +710,9 @@ namespace VolViz.DirectX
         Resource constantBuffer;
         ConstantBuffer constantBufferData;
         IntPtr constantBufferPointer;
+
+        // Keep this in a common variable, so it can be safely disposed whenever necessary
+        Resource transferFunctionTextureUploadHeap;
 
         // Synchronization objects.
         private int frameIndex;
