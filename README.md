@@ -15,6 +15,7 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 * Histogram in TF editor  
 * Color/opacity band in TF editor that shows the current TF parameters  
 * Dragging the *lines* and not just the nodes in TF editor  
+* Possibility of changing opacity of TF nodes without assigning color at the moment a node is clicked
 * Temporarily changing TF on mouse-over of histogram, to hilight the points in the volume that have the intensity in question  
 * UI to change contribution of gradients to transfer function
 * Threshold selector for first-hit render
@@ -25,9 +26,8 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 
 ### GPU renderer
 
-* Add transfer function support
 * Add gradient support
-* Integrate TF editor and rendering parameters to renderer
+* Integrate rendering parameters to renderer
 * Phong shading
 * Integrate step size in a way that doesn't break the debugger
 * Fix sampling bug in transfer function sampling, where edge values are erroneously interpolated towards edge
@@ -38,14 +38,18 @@ Direct3D code based on the SharpDX samples of https://github.com/sharpdx/SharpDX
 * Refactoring parts of long files into separate classes
 * Refactor different rendering algorithms to different shader files
 * Make transfer function editor more performant. (Do a profiler run?)
+* Extract texture loading in GPU renderer to common helper methods
+* Rename GPU renderer class to something more descriptive
 
 ### Software renderer
 
-* Exponential refinement after view has been selected & not interacted with for a bit  
-* Performance improvements. Memoization table for voxel lookup? Deferred gradient calculation?
 * HSV interpolation rather than RGB interpolation
 
 ### Misc
 
-* Fix slightly wonky rotation if convenient
-* Some pictures for my GitHub page
+* Fix slightly wonky rotation, if convenient
+* Some pictures for this GitHub page
+
+### Bugs
+
+* Fix memory leak somewhere in the rendering (likely during loading GPU resources each frame)
