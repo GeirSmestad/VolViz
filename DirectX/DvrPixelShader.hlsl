@@ -35,6 +35,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 	float rayLength = 0;
 	float cutoffDistance = 5;
 	float4 outputColor = {0,0,0,0};
+	bool ModifyOpacityByGradientMagnitude = true;
 
 	// Debug only. Display transfer function, to see that it's is correctly loaded.
 	if (input.uv.y < 0.025) 
@@ -73,10 +74,16 @@ float4 PSMain(PSInput input) : SV_TARGET
 		//	// TODO: Modify intensity at this voxel by shading
 		//}
 
-		//if (ModifyOpacityByGradientMagnitude) 
-		//{
-		//	// TODO: Modify opacity by gradient magnitude in this location
-		//}
+		// TODO: Set by constant buffer
+		if (ModifyOpacityByGradientMagnitude) 
+		{
+			// TODO: I would expect the following line to work, but it leads to problem unrolling the loop. Alternative method yields no interpolation.
+			// float gradientMagnitude = gradientsTexture.Sample(volumeSampler, samplingLocation, 0, 1).x;
+			float gradientMagnitude = gradientsTexture.SampleLevel(volumeSampler, samplingLocation, 0).x;
+
+			// TODO: Modulate by constant buffer parameter, to be set interactively in render configuration
+			opacityAtThisVoxel = opacityAtThisVoxel * (float)(1 - 1 / log(exp(1) + gradientMagnitude));
+		}
 
 		// DVR compositing
 		outputColor = colorAtThisVoxel * opacityAtThisVoxel + (1 - opacityAtThisVoxel) * outputColor;
