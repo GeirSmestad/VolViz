@@ -112,7 +112,7 @@ namespace VolViz.DirectX
 
             var srvHeapDesc = new DescriptorHeapDescription()
             {
-                DescriptorCount = 2,
+                DescriptorCount = 3,
                 Flags = DescriptorHeapFlags.ShaderVisible,
                 Type = DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView
             };
@@ -156,7 +156,7 @@ namespace VolViz.DirectX
                         new DescriptorRange()
                         {
                             RangeType = DescriptorRangeType.ShaderResourceView,
-                            DescriptorCount = 2,
+                            DescriptorCount = 3,
                             OffsetInDescriptorsFromTableStart = int.MinValue,
                             BaseShaderRegister = 0
                         }),
@@ -324,7 +324,7 @@ namespace VolViz.DirectX
                 ResourceStates.GenericRead);
 
             // Copy data to the intermediate upload heap and then schedule a copy 
-            // from the upload heap to the Texture3D.
+            // from the upload heap to the Texture1D.
             byte[] transferFunctionTextureData = GenerateTransferFunctionTextureData();
 
             var transferFunctionHandle = GCHandle.Alloc(transferFunctionTextureData, GCHandleType.Pinned);
@@ -346,12 +346,58 @@ namespace VolViz.DirectX
                 Texture1D = { MipLevels = 1 },
             };
 
-            var handleIncrement = device.GetDescriptorHandleIncrementSize(DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
+            var transferFunctionHandleIncrement = device.GetDescriptorHandleIncrementSize(DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
             
-            CpuDescriptorHandle locationDesctiptor = shaderRenderViewHeap.CPUDescriptorHandleForHeapStart + handleIncrement;
-            device.CreateShaderResourceView(this.transferFunctionTexture, transferFunctionSrvDesc, locationDesctiptor);
+            CpuDescriptorHandle transferFunctionLocationDesctiptor = shaderRenderViewHeap.CPUDescriptorHandleForHeapStart + transferFunctionHandleIncrement;
+            device.CreateShaderResourceView(this.transferFunctionTexture, transferFunctionSrvDesc, transferFunctionLocationDesctiptor);
             // End load transfer function data
+            
+            // Load gradients data
+            var gradientsTextureDesc = ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, VolumeTextureWidth, VolumeTextureHeight, VolumeTextureDepth, 1);
+            gradientsTexture = device.CreateCommittedResource(new HeapProperties(
+                HeapType.Default),
+                HeapFlags.None,
+                gradientsTextureDesc,
+                ResourceStates.CopyDestination);
 
+            long gradientsUploadBufferSize = GetRequiredIntermediateSize(this.gradientsTexture, 0, 1);
+
+            // Create the GPU upload buffer.
+            var gradientsTextureUploadHeap = device.CreateCommittedResource(new HeapProperties(
+                CpuPageProperty.WriteBack,
+                MemoryPool.L0), HeapFlags.None,
+                ResourceDescription.Texture3D(Format.R8G8B8A8_UNorm, VolumeTextureWidth, VolumeTextureHeight, VolumeTextureDepth, 1),
+                ResourceStates.GenericRead);
+
+            // Copy data to the intermediate upload heap and then schedule a copy 
+            // from the upload heap to the Texture3D.
+            byte[] gradientsTextureData = GenerateGradientsTextureData();
+
+            var gradientsHandle = GCHandle.Alloc(gradientsTextureData, GCHandleType.Pinned);
+            var gradientsPtr = Marshal.UnsafeAddrOfPinnedArrayElement(gradientsTextureData, 0);
+
+            gradientsTextureUploadHeap.WriteToSubresource(0, null, gradientsPtr, TexturePixelSize * VolumeTextureWidth, TexturePixelSize * VolumeTextureWidth * VolumeTextureHeight);
+
+            gradientsHandle.Free();
+
+            commandList.CopyTextureRegion(new TextureCopyLocation(gradientsTexture, 0), 0, 0, 0, new TextureCopyLocation(gradientsTextureUploadHeap, 0), null);
+            commandList.ResourceBarrierTransition(this.gradientsTexture, ResourceStates.CopyDestination, ResourceStates.PixelShaderResource);
+
+            // Describe and create a SRV for the gradients texture.
+            var gradientsSrvDesc = new ShaderResourceViewDescription
+            {
+                Shader4ComponentMapping = D3DXUtilities.DefaultComponentMapping(),
+                Format = gradientsTextureDesc.Format,
+                Dimension = ShaderResourceViewDimension.Texture3D,
+                Texture3D = { MipLevels = 1 },
+            };
+
+            var gradientsHandleIncrement = device.GetDescriptorHandleIncrementSize(DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
+
+            CpuDescriptorHandle gradientsLocationDesctiptor = shaderRenderViewHeap.CPUDescriptorHandleForHeapStart + gradientsHandleIncrement * 2;
+            device.CreateShaderResourceView(this.gradientsTexture, gradientsSrvDesc, gradientsLocationDesctiptor);
+            // End load gradients data
+            
             // Command lists are created in the recording state, but there is nothing
             // to record yet. The main loop expects it to be closed, so close it now.
             commandList.Close();
@@ -386,6 +432,7 @@ namespace VolViz.DirectX
             //release temp texture
             volumeTextureUploadHeap.Dispose();
             transferFunctionTextureUploadHeap.Dispose();
+            gradientsTextureUploadHeap.Dispose();
         }
 
         byte[] GenerateVolumeTextureData()
@@ -395,7 +442,6 @@ namespace VolViz.DirectX
 
             int layerSize = VolumeTextureWidth * VolumeTextureHeight;
             int textureSize = layerPitch * VolumeTextureDepth;
-
 
             byte[] data = new byte[textureSize];
 
@@ -439,6 +485,38 @@ namespace VolViz.DirectX
                 data[n + 1] = (byte)(color.Y * 255); // G
                 data[n + 2] = (byte)(color.Z * 255); // B
                 data[n + 3] = (byte)(opacity * 255); // A
+            }
+
+            return data;
+        }
+
+        byte[] GenerateGradientsTextureData()
+        {
+            int rowPitch = VolumeTextureWidth * TexturePixelSize;
+            int layerPitch = rowPitch * VolumeTextureHeight;
+
+            int layerSize = VolumeTextureWidth * VolumeTextureHeight;
+            int textureSize = layerPitch * VolumeTextureDepth;
+
+            byte[] data = new byte[textureSize];
+
+            for (int n = 0; n < textureSize; n += TexturePixelSize)
+            {
+                int x = (n / 4) % VolumeTextureWidth;
+                int y = ((n / 4) % layerSize) / VolumeTextureWidth;
+                int z = (n / 4) / layerSize;
+
+                var voxelValue = volume.GradientMagnitudes[x, y, z];
+
+                if (voxelValue > 0.01)
+                {
+                    int i = 5;
+                }
+
+                data[n] = (byte)(voxelValue * 255);
+                data[n + 1] = (byte)(voxelValue * 255);
+                data[n + 2] = (byte)(voxelValue * 255);
+                data[n + 3] = 0xff;
             }
 
             return data;
@@ -614,7 +692,7 @@ namespace VolViz.DirectX
         {
             // TODO: This code is identical with TF loading in the LoadAssets method.
             // Could be extracted to common helper class, perhaps also including
-            // volume texture loading.
+            // volume texture loading. We call nearly-identical code three times in this file.
 
             // TODO: I suspect the might be another, minor, memory leak here.
 
@@ -636,7 +714,7 @@ namespace VolViz.DirectX
                 ResourceStates.GenericRead);
 
             // Copy data to the intermediate upload heap and then schedule a copy 
-            // from the upload heap to the Texture3D.
+            // from the upload heap to the Texture1D.
             byte[] transferFunctionTextureData = GenerateTransferFunctionTextureData();
 
             var transferFunctionHandle = GCHandle.Alloc(transferFunctionTextureData, GCHandleType.Pinned);
@@ -709,6 +787,7 @@ namespace VolViz.DirectX
         VertexBufferView vertexBufferView;
         Resource volumeTexture;
         Resource transferFunctionTexture;
+        Resource gradientsTexture;
         Resource constantBuffer;
         ConstantBuffer constantBufferData;
         IntPtr constantBufferPointer;

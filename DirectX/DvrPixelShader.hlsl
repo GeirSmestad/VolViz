@@ -6,6 +6,7 @@
 
 Texture3D volumeTexture : register(t0);
 Texture1D transferFunctionTexture: register(t1);
+Texture3D gradientsTexture : register(t2);
 
 SamplerState volumeSampler : register(s0);
 

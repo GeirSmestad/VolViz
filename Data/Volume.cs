@@ -24,7 +24,7 @@ namespace VolViz.Data
         public int SizeOfLargestDimension;
 
         public float[,,] Contents;
-        private float[,,] GradientMagnitudes;
+        public float[,,] GradientMagnitudes;
 
         /// <summary>
         /// Initialize an empty volume
